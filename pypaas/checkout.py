@@ -6,7 +6,7 @@ import os.path
 import shutil
 import subprocess
 
-from . import options
+from . import builders, options
 
 
 class Checkout(object):
@@ -45,3 +45,9 @@ class Checkout(object):
                         to_delete.append(os.path.join(root, d))
             for d in to_delete:
                 shutil.rmtree(d)
+
+    def build(self):
+        for builder_cls in builders.__all__:
+            builder = builder_cls(self)
+            if builder.is_applicable:
+                builder.build()

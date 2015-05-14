@@ -43,3 +43,4 @@ class Repo(object):
     def new_checkout(self, commit, name):
         checkout = Checkout(self, commit, name)
         checkout.ensure_existence()
+        return checkout

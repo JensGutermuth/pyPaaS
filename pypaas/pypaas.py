@@ -51,5 +51,6 @@ def main():
                 )
                 sys.exit(1)
             checkout = repo.new_checkout(newref, branch)
+            checkout.build()
     else:
         raise RuntimeError('No command executed, very fishy!')
