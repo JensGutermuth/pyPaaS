@@ -1,0 +1,8 @@
+# virtualenv
+# ==========
+/venv
+
+# pythonic crap
+# =============
+*.egg-info
+*.pyc
