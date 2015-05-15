@@ -32,8 +32,11 @@ class Repo(object):
     def path(self):
         return os.path.join(options.BASEPATH, self.name, 'repo')
 
-    def ensure_existence(self):
-        if not os.path.isdir(os.path.join(self.path, 'refs')):
+    def ensure_existence(self, fail_if_preexisting=True):
+        testpath = os.path.join(self.path, 'refs')
+        if os.path.isdir(testpath) and fail_if_preexisting:
+            raise RuntimeError('Repo already exists')
+        if not os.path.isdir(testpath):
             subprocess.check_output(['git', 'init', '--bare', self.path])
             hook = os.path.join(self.path, 'hooks/pre-receive')
             with open(hook, 'w') as hookf:

@@ -6,7 +6,6 @@ import os.path
 from setuptools import find_packages, setup
 
 install_requires = [
-    'docopt>=0.6.2'
 ]
 
 setup(
