@@ -5,12 +5,13 @@ import subprocess
 import sys
 
 from . import repo as repo_cmd
+from ..app import App
 from ..repo import Repo
 from .argparser import subparsers
 
 
 def receive_pack(repo_name):
-    repo_cmd.create(repo_name, fail_if_preexisting=False)
+    repo_cmd.create(repo_name, ignore_existing=True)
     subprocess.check_call(
         [
             "git-shell", "-c",
@@ -40,7 +41,24 @@ def pre_receive_hook(repo_name):
                 'Only pushing to master is currently supported!\n'
             )
             sys.exit(1)
-        repo_cmd.checkout_and_build(repo_name, newref, branch)
+
+        apps = []
+        for app in App.all():
+            if app.config.get('repo', 'name') != repo.name:
+                sys.stderr.write(type(app.config.get('repo', 'name')))
+                continue
+            if app.config.get('repo', 'branch') != branch:
+                sys.stderr.write(type(app.config.get('repo', 'branch')))
+                continue
+            apps.append(app)
+        if len(apps) == 0:
+            sys.stderr.write(
+                'No app configured for this branch!\n'
+            )
+            sys.exit(1)
+
+        for app in apps:
+            app.deploy(newref)
 
 git_pre_receive_hook_parser = subparsers.add_parser('git-pre-receive-hook')
 git_pre_receive_hook_parser.add_argument('repo_name', type=str)
