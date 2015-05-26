@@ -7,7 +7,7 @@ import argparse
 import subprocess
 import sys
 
-from .commands import app, git, repo
+from .commands import app, git, repo, ssh
 from .commands.argparser import parser
 
 

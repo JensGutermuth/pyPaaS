@@ -5,15 +5,16 @@ import os
 import os.path
 import stat
 import subprocess
+import sys
 
-from . import options
+from . import options, util
 from .checkout import Checkout
 
 
 HOOKSCRIPT = """
 #!/usr/bin/env bash
 set -e; set -o pipefail;
-export PATH=$PATH:{options.PATH_SUFFIX}
+export PATH=$PATH:{path_suffix}
 cat | pypaas git-pre-receive-hook {repo.name}
 """.strip()
 
@@ -39,10 +40,11 @@ class Repo(object):
         if os.path.isdir(testpath) and not ignore_existing:
             raise ValueError('Repo already exists')
         if not os.path.isdir(testpath):
-            subprocess.check_call(['mkdir', os.path.join(options.BASEPATH,
-                                                         'repos')])
+            util.mkdir_p(os.path.join(options.BASEPATH, 'repos'))
             subprocess.check_output(['git', 'init', '--bare', self.path])
             hook = os.path.join(self.path, 'hooks/pre-receive')
             with open(hook, 'w') as hookf:
-                hookf.write(HOOKSCRIPT.format(repo=self, options=options))
+                hookf.write(HOOKSCRIPT.format(
+                    repo=self, path_suffix=os.path.dirname(sys.executable)
+                ))
             os.chmod(hook, stat.S_IXUSR | os.stat(hook).st_mode)

@@ -2,17 +2,14 @@
 import errno
 import os
 
+from configparser import ConfigParser
 
-def mkdir_p(path):
-    try:
-        os.makedirs(path)
-    except OSError as exc:
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
-            pass
-        else:
-            raise
+global_config = ConfigParser()
+global_config.read_string('''
+[pyPaaS]
+base_directory=/tmp/pyPaaS
+''')
+global_config.read('/etc/pyPaaS.ini')
+global_config.read('~/pyPaaS.ini')
 
-BASEPATH = '/tmp/pyPaaS'
-mkdir_p(BASEPATH)
-
-PATH_SUFFIX = '/fintura/pyPaaS/venv/bin'
+BASEPATH = global_config.get('pyPaaS', 'base_directory')

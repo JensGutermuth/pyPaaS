@@ -22,6 +22,8 @@ class App(object):
     def __init__(self, name):
         self.name = name
         self.config = ConfigParser()
+        # Makes keys in config files case sensitive
+        self.config.optionxform = str
         self.config.read(os.path.join(self.path, 'config.ini'))
 
     @property
@@ -65,6 +67,12 @@ class App(object):
 
     @classmethod
     def remove(cls, name):
+        """
+        Removes an app.
+
+        If the app exists, this removes all traces even if the app is damaged
+        (like has no or a broken config file).
+        """
         # TODO: stop running processes
         shutil.rmtree(os.path.join(options.BASEPATH, 'apps', name))
 
@@ -75,9 +83,15 @@ class App(object):
         new_checkout = Checkout.create(self, commit)
         new_checkout.build()
         # TODO: enabling maintenance mode
-        raise NotImplementedError('stopping old version')
+        for checkout in Checkout.all_for_app(self):
+            if checkout.name == new_checkout.name:
+                continue
+            for runner in checkout.runners:
+                runner.destroy()
+
         # TODO: running migrations
-        raise NotImplementedError('starting new version')
+        for runner in new_checkout.runners:
+            runner.create()
         # TODO: health checks
         # TODO: write current version to config file
         # TODO: cleanup of old version
