@@ -32,7 +32,6 @@ def clean_repo_name(repo_name):
 
 
 def main():
-    sys.stderr.write(repr(sys.argv))
     if len(sys.argv) < 2:
         print_usage_and_exit()
 
