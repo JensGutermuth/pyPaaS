@@ -8,6 +8,7 @@ import sys
 
 from .app import App
 from .repo import Repo
+from .sshkey import SSHKey
 
 
 def print_usage_and_exit():
@@ -32,10 +33,12 @@ def clean_repo_name(repo_name):
 
 def main():
     sys.stderr.write(repr(sys.argv))
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 2:
         print_usage_and_exit()
 
     if sys.argv[1] == 'git-receive-pack':
+        if len(sys.argv) != 3:
+            print_usage_and_exit()
         repo = Repo(clean_repo_name(sys.argv[2]))
         subprocess.check_call(
             [
@@ -46,6 +49,8 @@ def main():
             stdin=None
         )
     elif sys.argv[1] == 'git-pre-receive-hook':
+        if len(sys.argv) != 3:
+            print_usage_and_exit()
         repo = Repo(clean_repo_name(sys.argv[2]))
         for oldref, newref, refname in [l.split() for l in sys.stdin]:
             if not refname.startswith('refs/heads/'):
@@ -69,5 +74,7 @@ def main():
 
             for app in apps:
                 app.deploy(newref)
+    elif sys.argv[1] == 'rebuild_authorized_keys':
+        SSHKey.rebuild_authorized_keys()
     else:
         print_usage_and_exit()
