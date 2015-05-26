@@ -21,9 +21,13 @@ class SSHKey(object):
         lines = []
         ssh_dir = os.path.expanduser('~/.ssh')
         util.mkdir_p(os.path.join(ssh_dir, 'authorized_keys.d'))
-        print()
+
         for name in os.listdir(os.path.join(ssh_dir, 'authorized_keys.d')):
+            name = name.replace('.pub', '')
             key = open(os.path.join(ssh_dir, 'authorized_keys.d', name)).read()
+            keyparts = key.split()
+            assert keyparts[0].startswith('ssh-')
+            key = ' '.join(keyparts[:2])
             lines.append(
                 ('command="{pypaas_cmd} $SSH_ORIGINAL_COMMAND",' +
                  'no-agent-forwarding,no-user-rc,no-X11-forwarding,' +
@@ -36,17 +40,4 @@ class SSHKey(object):
                 )
             )
         util.replace_file(os.path.join(ssh_dir, 'authorized_keys'),
-                          '\n'.join(lines))
-
-    def save_key(self, key):
-        keyparts = key.split()
-        assert keyparts[0].startswith('ssh-')
-        key = ' '.join(keyparts[:2])
-
-        ssh_dir = os.path.expanduser('~/.ssh')
-        util.mkdir_p(os.path.join(ssh_dir, 'authorized_keys.d'))
-        keyfilepath = os.path.join(ssh_dir, 'authorized_keys.d', self.name)
-        with open(keyfilepath, 'w') as keyfile:
-            keyfile.write(key)
-
-        self.rebuild_authorized_keys()
+                          '\n'.join(lines)+'\n')
