@@ -3,8 +3,8 @@
 
 
 class BaseRunner(object):
-    def __init__(self, checkout):
-        self.checkout = checkout
+    def __init__(self, app):
+        self.app = app
 
     @property
     def is_applicable(self):

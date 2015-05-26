@@ -9,7 +9,7 @@ import subprocess
 
 from configparser import ConfigParser
 
-from . import builders, options, runners
+from . import builders, options
 
 
 class Checkout(object):
@@ -19,21 +19,13 @@ class Checkout(object):
     @property
     def path(self):
         return os.path.join(
-            options.BASEPATH, 'checkouts', self.app.name,
+            options.BASEPATH, 'checkouts', self.app.repo.name, self.app.name,
             '{}-{}'.format(self.name, self.commit[:11])
         )
 
-    @property
-    def config(self):
-        if not hasattr(self, '_config'):
-            self._config = ConfigParser()
-            self._config.read(os.path.join(self.app.path, 'config.ini'))
-            self._config.read(os.path.join(self.path, '.pypaas.ini'))
-        return self._config
-
     @classmethod
     def create(cls, app, commit):
-        name = datetime.datetime.now().strftime('%Y%M%d_%H%M%S')
+        name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         self = cls(app, commit, name)
         subprocess.check_call(
             ['git', 'clone', '-q', self.app.repo.path, self.path],
@@ -64,13 +56,14 @@ class Checkout(object):
     def all_for_app(cls, app):
         try:
             files = os.listdir(os.path.join(
-                options.BASEPATH, 'checkouts', app.name
+                options.BASEPATH, 'checkouts', app.repo.name, app.name
             ))
         except FileNotFoundError:
             return []
         for basename in files:
             f = os.path.join(
-                options.BASEPATH, 'checkouts', app.name, basename
+                options.BASEPATH, 'checkouts',
+                app.repo.name, app.name, basename
             )
             if not os.path.isdir(f):
                 continue
@@ -83,9 +76,5 @@ class Checkout(object):
             if builder.is_applicable:
                 builder.build()
 
-    @property
-    def runners(self):
-        for runner_cls in runners.__all__:
-            runner = runner_cls(self)
-            if runner.is_applicable:
-                yield runner
+    def remove(self):
+        shutil.rmtree(self.path)

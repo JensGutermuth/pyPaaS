@@ -7,11 +7,8 @@ import shutil
 import stat
 import subprocess
 
-from configparser import ConfigParser
-
-from . import options
+from . import options, runners, util
 from .checkout import Checkout
-from .repo import Repo
 
 
 class App(object):
@@ -19,79 +16,77 @@ class App(object):
     Represents a group of processes running code from a specific branch from a
     repo.
     """
-    def __init__(self, name):
-        self.name = name
-        self.config = ConfigParser()
-        # Makes keys in config files case sensitive
-        self.config.optionxform = str
-        self.config.read(os.path.join(self.path, 'config.ini'))
+    def __init__(self, repo, config):
+        self.repo = repo
+        self.config = config
+        util.mkdir_p(self.state_path)
 
     @property
-    def path(self):
-        return os.path.join(options.BASEPATH, 'apps', self.name)
+    def state_path(self):
+        return os.path.join(
+            options.BASEPATH, 'apps', self.repo.name, self.name,
+        )
 
     @property
-    def repo(self):
-        return Repo(self.config.get('repo', 'name'))
+    def current_checkout(self):
+        # used during startup
+        if hasattr(self, '_current_checkout'):
+            return self._current_checkout
 
-    @classmethod
-    def all(cls):
         try:
-            files = os.listdir(os.path.join(options.BASEPATH, 'apps'))
-        except FileNotFoundError:
-            return []
-        for basename in files:
-            f = os.path.join(options.BASEPATH, 'apps', basename)
-            if not os.path.isdir(f):
-                continue
-            yield cls(basename)
+            with open(os.path.join(self.state_path, 'current_checkout')) as f:
+                name = f.read()
+        except IOError:
+            return None
+        for c in Checkout.all_for_app(self):
+            if c.name == name:
+                return c
+        # apparrently that checkout does not exist
+        os.unlink(os.path.join(self.state_path, 'current_checkout'))
+        return None
 
-    @classmethod
-    def create(cls, name, repo, branch='master', ignore_existing=False):
-        path = os.path.join(options.BASEPATH, 'apps', name)
-        if os.path.isdir(path) and not ignore_existing:
-            raise ValueError('This app already exists')
+    @property
+    def branch(self):
+        return self.config['branch']
 
-        if not os.path.isdir(path):
-            subprocess.check_call(['mkdir', '-p', path])
-            open(os.path.join(path, 'config.ini'), 'w').close()
-            app = cls(name)
-            app.config.add_section('repo')
-            app.config.set('repo', 'name', repo.name)
-            app.config.set('repo', 'branch', branch)
-            app.save_config()
-        else:
-            app = cls(name)
+    @property
+    def name(self):
+        return self.config['name'] if 'name' in self.config else self.branch
 
-        return app
-
-    @classmethod
-    def remove(cls, name):
-        """
-        Removes an app.
-
-        If the app exists, this removes all traces even if the app is damaged
-        (like has no or a broken config file).
-        """
-        # TODO: stop running processes
-        shutil.rmtree(os.path.join(options.BASEPATH, 'apps', name))
-
-    def save_config(self):
-        self.config.write(open(os.path.join(self.path, 'config.ini'), 'w'))
+    @property
+    def runners(self):
+        for runner_cls in runners.__all__:
+            runner = runner_cls(self)
+            if runner.is_applicable:
+                yield runner
 
     def deploy(self, commit):
         new_checkout = Checkout.create(self, commit)
         new_checkout.build()
-        # TODO: enabling maintenance mode
-        for checkout in Checkout.all_for_app(self):
-            if checkout.name == new_checkout.name:
-                continue
-            for runner in checkout.runners:
-                runner.destroy()
 
-        # TODO: running migrations
-        for runner in new_checkout.runners:
-            runner.create()
+        for runner in self.runners:
+            runner.stop()
+
+        if 'migration_cmd' in self.config:
+            subprocess.check_call(
+                self.config['migration_cmd'],
+                shell=True, cwd=new_checkout.path,
+                env=self.config['env']
+            )
+
+        self._current_checkout = new_checkout
+        for runner in self.runners:
+            runner.configure()
+            runner.start()
+
         # TODO: health checks
-        # TODO: write current version to config file
-        # TODO: cleanup of old version
+
+        del self._current_checkout
+        util.replace_file(
+            os.path.join(self.state_path, 'current_checkout'),
+            new_checkout.name
+        )
+
+        for c in Checkout.all_for_app(self):
+            if c.name != new_checkout.name:
+                c.remove()

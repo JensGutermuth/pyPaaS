@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from . import options, util
+from .app import App
 from .checkout import Checkout
 
 
@@ -28,18 +29,10 @@ class Repo(object):
     """
     def __init__(self, name):
         self.name = name
+        if self.name not in options.repos:
+            raise ValueError('This repo is not configured')
 
-    @property
-    def path(self):
-        return os.path.join(options.BASEPATH, 'repos', self.name)
-
-    @classmethod
-    def create(cls, name, ignore_existing=False):
-        self = cls(name)
-        testpath = os.path.join(self.path, 'refs')
-        if os.path.isdir(testpath) and not ignore_existing:
-            raise ValueError('Repo already exists')
-        if not os.path.isdir(testpath):
+        if not os.path.isdir(os.path.join(self.path, 'refs/heads')):
             util.mkdir_p(os.path.join(options.BASEPATH, 'repos'))
             subprocess.check_output(['git', 'init', '--bare', self.path])
             hook = os.path.join(self.path, 'hooks/pre-receive')
@@ -48,3 +41,15 @@ class Repo(object):
                     repo=self, path_suffix=os.path.dirname(sys.executable)
                 ))
             os.chmod(hook, stat.S_IXUSR | os.stat(hook).st_mode)
+
+    @property
+    def config(self):
+        return options.repos[self.name]
+
+    @property
+    def path(self):
+        return os.path.join(options.BASEPATH, 'repos', self.name)
+
+    @property
+    def apps(self):
+        return (App(self, app_config) for app_config in self.config)

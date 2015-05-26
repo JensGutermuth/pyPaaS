@@ -12,7 +12,7 @@ A **checkout** is used internally. It's a specific commit from a repo checked ou
 pyPaaS has a few dependencies we need to install first:
 
 ```
-root@host$ apt-get install python-virtualenv daemontools daemontools-run
+root@host$ apt-get install python-virtualenv python3.4-dev libyaml-dev daemontools daemontools-run
 ```
 
 
