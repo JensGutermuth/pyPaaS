@@ -79,6 +79,7 @@ class SimpleProcess(BaseRunner):
             getattr(self, name)(**kwargs)
 
     def configure(self):
+        util.mkdir_p(os.path.expanduser('~/services/'))
         for s in os.listdir(os.path.expanduser('~/services')):
             # clean up any old service definitions
             if s.startswith(self.name + '-') and s not in self.service_names:
