@@ -23,11 +23,11 @@ class SSHKey(object):
         util.mkdir_p(os.path.join(ssh_dir, 'authorized_keys.d'))
 
         for name in os.listdir(os.path.join(ssh_dir, 'authorized_keys.d')):
-            name = name.replace('.pub', '')
             key = open(os.path.join(ssh_dir, 'authorized_keys.d', name)).read()
             keyparts = key.split()
             assert keyparts[0].startswith('ssh-')
             key = ' '.join(keyparts[:2])
+            name = name.replace('.pub', '')
             lines.append(
                 ('command="{pypaas_cmd} $SSH_ORIGINAL_COMMAND",' +
                  'no-agent-forwarding,no-user-rc,no-X11-forwarding,' +
