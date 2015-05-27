@@ -18,11 +18,13 @@ upstream backend_{domain} {{
 }}
 server {{
     listen 80 {extra_listen_options};
+    listen [::]:80 ipv6only=on {extra_listen_options};
     server_name {domain};
     rewrite ^ https://$server_name$request_uri? permanent;
 }}
 server {{
     listen 443 {extra_listen_options};
+    listen [::]:443 ipv6only=on {extra_listen_options};
     server_name {domain};
     ssl_certificate /etc/ssl/private/httpd/{domain}/{domain}.crt;
     ssl_certificate_key /etc/ssl/private/httpd/{domain}/{domain}.key;
@@ -49,7 +51,8 @@ upstream backend_{domain} {{
 {upstreams}
 }}
 server {{
-    listen 81 {extra_listen_options};
+    listen 80 {extra_listen_options};
+    listen [::]:80 ipv6only=on {extra_listen_options};
     server_name {domain};
     location / {{
         proxy_pass http://backend_{domain};
