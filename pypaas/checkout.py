@@ -71,10 +71,20 @@ class Checkout(object):
             yield cls(app, commit, name)
 
     def build(self):
+        if 'before_build_cmd' in self.app.config:
+            subprocess.check_call(
+                self.app.config['before_build_cmd'],
+                shell=True, cwd=self.path
+            )
         for builder_cls in builders.__all__:
             builder = builder_cls(self)
             if builder.is_applicable:
                 builder.build()
+        if 'after_build_cmd' in self.app.config:
+            subprocess.check_call(
+                self.app.config['after_build_cmd'],
+                shell=True, cwd=self.path
+            )
 
     def remove(self):
         shutil.rmtree(self.path)
