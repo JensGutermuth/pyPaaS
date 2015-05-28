@@ -16,9 +16,10 @@ class App(object):
     Represents a group of processes running code from a specific branch from a
     repo.
     """
-    def __init__(self, repo, config):
+    def __init__(self, repo, name, config):
         self.repo = repo
         self.config = config
+        self.name = name
         util.mkdir_p(self.state_path)
 
     @property
@@ -48,10 +49,6 @@ class App(object):
     @property
     def branch(self):
         return self.config['branch']
-
-    @property
-    def name(self):
-        return self.config['name'] if 'name' in self.config else self.branch
 
     @property
     def runners(self):

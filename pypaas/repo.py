@@ -52,4 +52,5 @@ class Repo(object):
 
     @property
     def apps(self):
-        return (App(self, app_config) for app_config in self.config)
+        return (App(self, name, app_config)
+                for name, app_config in self.config.items())
