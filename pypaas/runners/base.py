@@ -12,7 +12,11 @@ class BaseRunner(object):
         Looks at the checkout and determines, if this runner is applicable to
         the code.
         """
-        raise NotImplemented()
+        return self.config_key in self.app.config
+
+    @property
+    def config(self):
+        return self.app.config[self.config_key]
 
     def create(self):
         raise NotImplemented

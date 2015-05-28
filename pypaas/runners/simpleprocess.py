@@ -118,4 +118,5 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
             path = os.path.expanduser('~/services/{}'.format(s))
             if os.path.isdir(path):
                 svc_destroy(s)
+                svc_destroy(os.path.join(s, 'log'))
                 shutil.rmtree(path)

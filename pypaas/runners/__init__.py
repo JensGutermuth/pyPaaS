@@ -3,5 +3,7 @@
 
 from .simpleprocess import SimpleProcess
 from .nginxbackend import NginxBackend
+from .nginxstatic import NginxStatic
 
-__all__ = [SimpleProcess, NginxBackend]
+
+__all__ = [SimpleProcess, NginxBackend, NginxStatic]

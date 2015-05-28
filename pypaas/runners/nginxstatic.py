@@ -8,24 +8,19 @@ import subprocess
 import sys
 
 from .. import util
-from ..portallocator import Port
-from .simpleprocess import SimpleProcess
+from .base import BaseRunner
 
-upstream = "    server {host}:{port};"
 
 nginx_ssl_config = """
-upstream backend_{domain} {{
-{upstreams}
-}}
 server {{
     listen 80 {extra_listen_options};
-    listen [::]:80 ipv6only=on {extra_listen_options};
+    listen [::]:80 {extra_listen_options};
     server_name {domain};
     rewrite ^ https://$server_name$request_uri? permanent;
 }}
 server {{
     listen 443 {extra_listen_options};
-    listen [::]:443 ipv6only=on {extra_listen_options};
+    listen [::]:443 {extra_listen_options};
     server_name {domain};
     ssl_certificate /etc/ssl/private/httpd/{domain}/{domain}.crt;
     ssl_certificate_key /etc/ssl/private/httpd/{domain}/{domain}.key;
@@ -40,32 +35,25 @@ server {{
     ssl_trusted_certificate /etc/ssl/private/httpd/{domain}/trusted_chain.crt;
     resolver 8.8.8.8 8.8.4.4;
     location / {{
-        proxy_pass http://backend_{domain};
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
+        alias {path};
     }}
 }}
 """  # nopep8 (silence pep8 warning about long lines)
 
 nginx_config = """
-upstream backend_{domain} {{
-{upstreams}
-}}
 server {{
     listen 80 {extra_listen_options};
-    listen [::]:80 ipv6only=on {extra_listen_options};
+    listen [::]:80 {extra_listen_options};
     server_name {domain};
     location / {{
-        proxy_pass http://backend_{domain};
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header Host $http_host;
+        alias {path};
     }}
 }}
 """  # nopep8 (silence pep8 warning about long lines)
 
 
-class NginxBackend(SimpleProcess, util.HooksMixin):
-    config_key = 'run_nginxbackend'
+class NginxStatic(BaseRunner):
+    config_key = 'run_nginxstatic'
 
     @property
     def nginx_config_path(self):
@@ -73,21 +61,10 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
             '~/nginx.d/', self.config['domain'] + '.conf'
         ))
 
-    @util.HooksMixin.hook('env')
-    def env_hook(self, env, idx, **kwargs):
-        env['PORT'] = Port(self).port
-        return env
-
     def configure(self):
-        old_ports = list(Port.all_for_runner(self))
-        print('old_ports', repr([p.port for p in old_ports]))
-        super().configure()
-        for p in old_ports:
-            p.free()
+        pass
 
     def start(self):
-        super().start()
-
         util.mkdir_p(os.path.expanduser('~/nginx.d/'))
         try:
             # Remove old broken config
@@ -95,16 +72,17 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
         except FileNotFoundError:
             pass
 
+        subdirectory = self.config.get('subdirectory', '')
+        while subdirectory.startswith("/"):
+            subdirectory = subdirectory[1:]
         args = dict(
             domain=self.config['domain'],
             extra_listen_options=self.config.get(
                 'extra_listen_options', ''
             ),
-            upstreams='\n'.join(
-                upstream.format(
-                    host='127.0.0.1',
-                    port=self.config['start_port'] + i
-                ) for i in range(self.config.get('process_count', 1))
+            path=os.path.join(
+                self.app.current_checkout.path,
+                subdirectory
             )
         )
         if self.config.get('ssl', True):
@@ -135,4 +113,3 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
             subprocess.check_call(['sudo', '/usr/sbin/nginx', '-s', 'reload'])
         except FileNotFoundError:
             pass
-        super().stop()
