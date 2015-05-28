@@ -62,14 +62,6 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
         ])
 
     @property
-    def is_applicable(self):
-        return self.config_key in self.app.config
-
-    @property
-    def config(self):
-        return self.app.config[self.config_key]
-
-    @property
     def service_names(self):
         return ['{}-{}'.format(self.name, i)
                 for i in range(self.config.get('process_count', 1))]
