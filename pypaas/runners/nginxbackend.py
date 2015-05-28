@@ -8,6 +8,7 @@ import subprocess
 import sys
 
 from .. import util
+from ..portallocator import Port
 from .simpleprocess import SimpleProcess
 
 upstream = "    server {host}:{port};"
@@ -74,8 +75,15 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
 
     @util.HooksMixin.hook('env')
     def env_hook(self, env, idx, **kwargs):
-        env['PORT'] = self.config['start_port'] + idx
+        env['PORT'] = Port(self).port
         return env
+
+    def configure(self):
+        old_ports = list(Port.all_for_runner(self))
+        print('old_ports', repr([p.port for p in old_ports]))
+        super().configure()
+        for p in old_ports:
+            p.free()
 
     def start(self):
         super().start()
