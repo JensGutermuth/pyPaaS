@@ -16,7 +16,7 @@ server {{
     listen 80 {extra_listen_options};
     listen [::]:80 {extra_listen_options};
     server_name {domain};
-    rewrite ^ https://$server_name$request_uri? permanent;
+    rewrite ^ https://$http_host$request_uri? permanent;
 }}
 server {{
     listen 443 ssl {extra_listen_options};
