@@ -13,9 +13,19 @@ class NPMBuilder(BaseBuilder):
         return os.path.isfile(os.path.join(self.checkout.path, 'package.json'))
 
     def build(self):
+        # Delete all the crap npm likes to leave behind
+        subprocess.check_call(
+            'rm -rf /tmp/npm-*',
+            shell=True
+        )
         subprocess.check_call(
             ['npm', 'install'],
             cwd=self.checkout.path
+        )
+        # Delete all the crap npm likes to leave behind
+        subprocess.check_call(
+            'rm -rf /tmp/npm-*',
+            shell=True
         )
 
 
