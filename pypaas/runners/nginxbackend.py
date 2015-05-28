@@ -75,10 +75,12 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
 
     @util.HooksMixin.hook('env')
     def env_hook(self, env, idx, **kwargs):
-        env['PORT'] = Port(self).port
+        self.new_ports.append(Port(self).port)
+        env['PORT'] = self.new_ports[-1]
         return env
 
     def configure(self):
+        self.new_ports = []
         old_ports = list(Port.all_for_runner(self))
         print('old_ports', repr([p.port for p in old_ports]))
         super().configure()
@@ -103,8 +105,8 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
             upstreams='\n'.join(
                 upstream.format(
                     host='127.0.0.1',
-                    port=self.config['start_port'] + i
-                ) for i in range(self.config.get('process_count', 1))
+                    port=p.port,
+                ) for p in self.new_ports
             )
         )
         if self.config.get('ssl', True):
