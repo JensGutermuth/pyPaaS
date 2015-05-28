@@ -63,7 +63,7 @@ server {{
 """  # nopep8 (silence pep8 warning about long lines)
 
 
-class NginxBackend(SimpleProcess):
+class NginxBackend(SimpleProcess, util.HooksMixin):
     config_key = 'run_nginxbackend'
 
     @property
@@ -72,6 +72,7 @@ class NginxBackend(SimpleProcess):
             '~/nginx.d/', self.config['domain'] + '.conf'
         ))
 
+    @util.HooksMixin.hook('env')
     def env_hook(self, env, idx, **kwargs):
         env['PORT'] = self.config['start_port'] + idx
         return env

@@ -50,7 +50,7 @@ def svc_destroy(service):
     ])
 
 
-class SimpleProcess(BaseRunner):
+class SimpleProcess(BaseRunner, util.HooksMixin):
     config_key = 'run_simpleprocess'
 
     @property
@@ -74,10 +74,6 @@ class SimpleProcess(BaseRunner):
         return ['{}-{}'.format(self.name, i)
                 for i in range(self.config.get('process_count', 1))]
 
-    def hook(self, name, **kwargs):
-        if hasattr(self, name):
-            getattr(self, name)(**kwargs)
-
     def configure(self):
         util.mkdir_p(os.path.expanduser('~/services/'))
         for s in os.listdir(os.path.expanduser('~/services')):
@@ -91,9 +87,7 @@ class SimpleProcess(BaseRunner):
         for idx, s in enumerate(self.service_names):
             util.mkdir_p(os.path.expanduser('~/services/{}/log'.format(s)))
             env = copy.deepcopy(self.app.config['env'])
-            self.hook(
-                'env_hook', env=env, idx=idx
-            )
+            self.call_hook('env', env=env, idx=idx)
             args = dict(
                 checkout=self.app.current_checkout,
                 cmd=self.config['cmd'],
