@@ -75,8 +75,8 @@ class NginxBackend(SimpleProcess, util.HooksMixin):
 
     @util.HooksMixin.hook('env')
     def env_hook(self, env, idx, **kwargs):
-        self.new_ports.append(Port(self).port)
-        env['PORT'] = self.new_ports[-1]
+        self.new_ports.append(Port(self))
+        env['PORT'] = self.new_ports[-1].port
         return env
 
     def configure(self):
