@@ -15,6 +15,7 @@ def print_usage_and_exit():
 Usage:
     pypaas git-receive-pack <repo_name>
     pypaas git-pre-receive-hook <repo_name>
+    pypaas rebuild_authorized_keys
 """)
     sys.exit(1)
 
@@ -73,6 +74,8 @@ def main():
             for r_branch in branches:
                 r_branch.deploy(newref)
     elif sys.argv[1] == 'rebuild_authorized_keys':
+        if len(sys.argv) != 2:
+            print_usage_and_exit()
         SSHKey.rebuild_authorized_keys()
     else:
         print_usage_and_exit()
