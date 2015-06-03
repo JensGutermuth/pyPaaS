@@ -6,7 +6,6 @@ pyPaaS command line interface
 import subprocess
 import sys
 
-from .app import App
 from .repo import Repo
 from .sshkey import SSHKey
 
@@ -60,19 +59,19 @@ def main():
                 sys.exit(1)
             branch = refname[len('refs/heads/'):]
 
-            apps = []
-            for app in repo.apps:
-                if app.branch == branch:
-                    apps.append(app)
+            branches = []
+            for r_branch in repo.branches.values():
+                if r_branch.name == branch:
+                    branches.append(r_branch)
 
-            if len(apps) == 0:
+            if len(branches) == 0:
                 sys.stderr.write(
-                    'No app configured for this branch!\n'
+                    'This branch is not configured!\n'
                 )
                 sys.exit(1)
 
-            for app in apps:
-                app.deploy(newref)
+            for r_branch in branches:
+                r_branch.deploy(newref)
     elif sys.argv[1] == 'rebuild_authorized_keys':
         SSHKey.rebuild_authorized_keys()
     else:

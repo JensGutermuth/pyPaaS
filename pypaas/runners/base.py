@@ -1,31 +1,89 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import datetime
+import os.path
+
+import yaml
+
+from .. import util
+
 
 class BaseRunner(object):
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, branch, config):
+        self.branch = branch
+        self.config = config
 
     @property
-    def is_applicable(self):
-        """
-        Looks at the checkout and determines, if this runner is applicable to
-        the code.
-        """
-        return self.config_key in self.app.config
+    def cls_name(self):
+        return self.__class__.__name__
 
     @property
-    def config(self):
-        return self.app.config[self.config_key]
+    def name(self):
+        return '-'.join([
+            self.cls_name,
+            self.branch.repo.name,
+            self.branch.name
+        ])
 
-    def create(self):
+    def configure(self):
         raise NotImplemented
 
-    def start(self):
+    def deconfigure(self):
         raise NotImplemented
 
-    def stop(self):
+    @property
+    def in_maintenance(self):
+        try:
+            with open(os.path.expanduser('~/maintenance-state.yml')) as f:
+                state = yaml.load(f)
+                return self.name in state
+        except FileNotFoundError:
+            return False
+
+    def enable_maintenance(self):
+        try:
+            with open(os.path.expanduser('~/maintenance-state.yml')) as f:
+                state = yaml.load(f)
+        except FileNotFoundError:
+            state = dict()
+        state[self.name] = {
+            started: datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+        }
+        util.replace_file(
+            os.path.expanduser('~/maintenance-state.yml'),
+            yaml.dump(state)
+        )
+
+    def disable_maintenance(self):
+        try:
+            with open(os.path.expanduser('~/maintenance-state.yml')) as f:
+                state = yaml.load(f)
+        except FileNotFoundError:
+            state = dict()
+        if self.name in state:
+            del state[self.name]
+        util.replace_file(
+            os.path.expanduser('~/maintenance-state.yml'),
+            yaml.dump(state)
+        )
+
+    def restart(self):
+        enable_maintenance()
+        disable_maintenance()
+
+
+class NginxBase(BaseRunner):
+    """
+    A BaseRunner, which can be used as an upstream for nginx.
+
+    upstream in this context means the contents of a location block
+    in the nginx config.
+    """
+    @property
+    def nginx_location(self):
         raise NotImplemented
 
-    def destroy(self):
-        raise NotImplemented
+    @property
+    def nginx_conf(self):
+        return ""

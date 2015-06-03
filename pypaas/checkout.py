@@ -13,22 +13,23 @@ from . import builders, options
 
 
 class Checkout(object):
-    def __init__(self, app, commit, name):
-        self.app, self.commit, self.name = app, commit, name
+    def __init__(self, branch, commit, name):
+        self.branch, self.commit, self.name = branch, commit, name
 
     @property
     def path(self):
         return os.path.join(
-            options.BASEPATH, 'checkouts', self.app.repo.name, self.app.name,
+            options.BASEPATH, 'checkouts',
+            self.branch.repo.name, self.branch.name,
             '{}-{}'.format(self.name, self.commit[:11])
         )
 
     @classmethod
-    def create(cls, app, commit):
+    def create(cls, branch, commit):
         name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-        self = cls(app, commit, name)
+        self = cls(branch, commit, name)
         subprocess.check_call(
-            ['git', 'clone', '-q', self.app.repo.path, self.path],
+            ['git', 'clone', '-q', self.branch.repo.path, self.path],
             env={}
         )
         subprocess.check_call(
@@ -53,38 +54,40 @@ class Checkout(object):
         return self
 
     @classmethod
-    def all_for_app(cls, app):
+    def all_for_branch(cls, branch):
         try:
             files = os.listdir(os.path.join(
-                options.BASEPATH, 'checkouts', app.repo.name, app.name
+                options.BASEPATH, 'checkouts', branch.repo.name, branch.name
             ))
         except FileNotFoundError:
             return []
         for basename in files:
             f = os.path.join(
                 options.BASEPATH, 'checkouts',
-                app.repo.name, app.name, basename
+                branch.repo.name, branch.name, basename
             )
             if not os.path.isdir(f):
                 continue
             name, commit = basename.split('-')
-            yield cls(app, commit, name)
+            yield cls(branch, commit, name)
+
+    def run_hook_cmd(self, name):
+        try:
+            hook = self.branch.config['hooks'][name]
+        except KeyError:
+            return
+        if not isinstance(hook, list):
+            hook = [hook]
+        for c in hook:
+            subprocess.check_call(c, shell=True, cwd=self.path)
 
     def build(self):
-        if 'before_build_cmd' in self.app.config:
-            subprocess.check_call(
-                self.app.config['before_build_cmd'],
-                shell=True, cwd=self.path
-            )
+        self.run_hook_cmd('before_build')
         for builder_cls in builders.__all__:
             builder = builder_cls(self)
             if builder.is_applicable:
                 builder.build()
-        if 'after_build_cmd' in self.app.config:
-            subprocess.check_call(
-                self.app.config['after_build_cmd'],
-                shell=True, cwd=self.path
-            )
+        self.run_hook_cmd('after_build')
 
     def remove(self):
         shutil.rmtree(self.path)

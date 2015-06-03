@@ -21,8 +21,8 @@ class Port(object):
                     self.port = p
                     state[p] = dict(
                         runner_type=runner.__class__.__name__,
-                        app_name=runner.app.name,
-                        repo_name=runner.app.repo.name
+                        branch=runner.branch.name,
+                        repo=runner.branch.repo.name
                     )
                     break
             else:
@@ -35,8 +35,8 @@ class Port(object):
     def free(self):
         state = self.get_state()
         assert state[self.port]['runner_type'] == self.runner.__class__.__name__
-        assert state[self.port]['app_name'] == self.runner.app.name
-        assert state[self.port]['repo_name'] == self.runner.app.repo.name
+        assert state[self.port]['branch'] == self.runner.branch.name
+        assert state[self.port]['repo'] == self.runner.branch.repo.name
         del state[self.port]
         self.set_state(state)
 
@@ -45,8 +45,8 @@ class Port(object):
         state = cls.get_state()
         for p, v in state.items():
             if v['runner_type'] == runner.__class__.__name__ and \
-                    v['app_name'] == runner.app.name and \
-                    v['repo_name'] == runner.app.repo.name:
+                    v['branch'] == runner.branch.name and \
+                    v['repo'] == runner.branch.repo.name:
                 yield cls(runner, p)
 
     @classmethod

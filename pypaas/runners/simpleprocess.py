@@ -26,6 +26,7 @@ exec multilog t ./main
 
 
 def svc_start(service):
+    print('starting daemontools service {}'.format(service))
     subprocess.check_call([
         'svc', '-u',
         os.path.expanduser('~/services/{}'.format(service))
@@ -33,6 +34,7 @@ def svc_start(service):
 
 
 def svc_stop(service):
+    print('stopping daemontools service {}'.format(service))
     subprocess.check_call([
         'svc', '-d',
         os.path.expanduser('~/services/{}'.format(service))
@@ -40,6 +42,19 @@ def svc_stop(service):
 
 
 def svc_destroy(service):
+    print('destorying daemontools service {}'.format(service))
+    svc_stop(service)
+    svc_stop(service + '/log')
+
+    try:
+        os.unlink(os.path.expanduser('~/services/{}/run'.format(service)))
+    except FileNotFoundError:
+        pass
+    try:
+        os.unlink(os.path.expanduser('~/services/{}/log/run'.format(service)))
+    except FileNotFoundError:
+        pass
+
     subprocess.check_call([
         'svc', '-x',
         os.path.expanduser('~/services/{}'.format(service))
@@ -50,17 +65,19 @@ def svc_destroy(service):
     ])
 
 
-class SimpleProcess(BaseRunner, util.HooksMixin):
-    config_key = 'run_simpleprocess'
-
-    @property
-    def name(self):
-        return '-'.join([
-            self.__class__.__name__,
-            self.app.repo.name,
-            self.app.name
+def svc_wait(service):
+    print('waiting for daemontools service {} to appear'.format(service))
+    out = None
+    while (out is None) or (b"supervise not running" in out) or \
+            (b"unable to control" in out):
+        out = subprocess.check_output([
+            'svstat',
+            os.path.expanduser('~/services/{}'.format(service))
         ])
+        time.sleep(0.05)
 
+
+class SimpleProcess(BaseRunner, util.HooksMixin):
     @property
     def service_names(self):
         return ['{}-{}'.format(self.name, i)
@@ -78,10 +95,10 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
 
         for idx, s in enumerate(self.service_names):
             util.mkdir_p(os.path.expanduser('~/services/{}/log'.format(s)))
-            env = copy.deepcopy(self.app.config['env'])
+            env = copy.deepcopy(self.branch.config['env'])
             self.call_hook('env', env=env, idx=idx)
             args = dict(
-                checkout=self.app.current_checkout,
+                checkout=self.branch.current_checkout,
                 cmd=self.config['cmd'],
                 env_cmds='\n'.join('export {}="{}"'.format(k, v) for k, v
                                    in env.items())
@@ -96,19 +113,20 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
                 runscript.format(**args),
                 chmod=0o755
             )
-
-    def start(self):
         for s in self.service_names:
+            svc_wait(s)
             svc_start(s)
 
-    def stop(self):
-        for s in self.service_names:
-            svc_stop(s)
-
-    def destroy(self):
+    def deconfigure(self):
         for s in self.service_names:
             path = os.path.expanduser('~/services/{}'.format(s))
             if os.path.isdir(path):
                 svc_destroy(s)
-                svc_destroy(os.path.join(s, 'log'))
                 shutil.rmtree(path)
+
+    def enable_maintenance(self):
+        for s in self.service_names:
+            svc_stop(s)
+
+    def disable_maintenance(self):
+        self.configure()

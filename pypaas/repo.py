@@ -8,7 +8,7 @@ import subprocess
 import sys
 
 from . import options, util
-from .app import App
+from .branch import Branch
 from .checkout import Checkout
 
 
@@ -51,6 +51,6 @@ class Repo(object):
         return os.path.join(options.BASEPATH, 'repos', self.name)
 
     @property
-    def apps(self):
-        return (App(self, name, app_config)
-                for name, app_config in self.config.items())
+    def branches(self):
+        return dict((name, Branch(self, name, branch_config))
+                    for name, branch_config in self.config['branches'].items())

@@ -6,12 +6,13 @@ import os.path
 import shutil
 import stat
 import subprocess
+import sys
 
 from . import options, runners, util
 from .checkout import Checkout
 
 
-class App(object):
+class Branch(object):
     """
     Represents a group of processes running code from a specific branch from a
     repo.
@@ -25,7 +26,7 @@ class App(object):
     @property
     def state_path(self):
         return os.path.join(
-            options.BASEPATH, 'apps', self.repo.name, self.name,
+            options.BASEPATH, 'state', self.repo.name, self.name,
         )
 
     @property
@@ -39,7 +40,7 @@ class App(object):
                 name = f.read()
         except IOError:
             return None
-        for c in Checkout.all_for_app(self):
+        for c in Checkout.all_for_branch(self):
             if c.name == name:
                 return c
         # apparrently that checkout does not exist
@@ -52,29 +53,34 @@ class App(object):
 
     @property
     def runners(self):
-        for runner_cls in runners.__all__:
-            runner = runner_cls(self)
-            if runner.is_applicable:
-                yield runner
+        res = dict()
+        for name, config in self.config['runners'].items():
+            for runner_cls in runners.__all__:
+                if runner_cls.__name__ == config['type']:
+                    res[name] = runner_cls(self, config)
+                    break
+            else:
+                raise ValueError('Runner type {} is unknown'
+                                 .format(config['type']))
+        return res
 
     def deploy(self, commit):
+        # Has to here. repo -> branch -> domain -> repo is a circle otherwise
+        from .domain import Domain
+
         new_checkout = Checkout.create(self, commit)
         new_checkout.build()
 
-        for runner in self.runners:
-            runner.stop()
+        for runner in self.runners.values():
+            runner.enable_maintenance()
+        Domain.configure_all()
 
-        if 'migration_cmd' in self.config:
-            subprocess.check_call(
-                self.config['migration_cmd'],
-                shell=True, cwd=new_checkout.path,
-                env=self.config['env']
-            )
+        new_checkout.run_hook_cmd('maintenance')
 
         self._current_checkout = new_checkout
-        for runner in self.runners:
-            runner.configure()
-            runner.start()
+        for runner in self.runners.values():
+            runner.disable_maintenance()
+        Domain.configure_all()
 
         # TODO: health checks
 
@@ -84,6 +90,6 @@ class App(object):
             new_checkout.name
         )
 
-        for c in Checkout.all_for_app(self):
+        for c in Checkout.all_for_branch(self):
             if c.name != new_checkout.name:
                 c.remove()

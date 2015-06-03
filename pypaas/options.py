@@ -9,12 +9,14 @@ from configparser import ConfigParser
 
 main = {}
 repos = {}
+domains = {}
 
 
 def load_config():
     """Load configuration from disk."""
     global main
-    global apps
+    global repos
+    global domains
     for configpath in ['~/config', '/etc/pypaas']:
         configpath = os.path.expanduser(configpath)
         if os.path.isfile(os.path.join(configpath, 'pypaas.yml')):
@@ -25,6 +27,13 @@ def load_config():
                 repo = repo[:-(len('.yml'))]
                 repos[repo] = yaml.load(open(
                     os.path.join(configpath, 'repos', repo + '.yml')
+                ))
+            for domain in os.listdir(os.path.join(configpath, 'domains')):
+                if not domain.endswith('.yml'):
+                    continue
+                domain = domain[:-(len('.yml'))]
+                domains[domain] = yaml.load(open(
+                    os.path.join(configpath, 'domains', domain + '.yml')
                 ))
             break
 
