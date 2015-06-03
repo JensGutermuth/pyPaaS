@@ -8,14 +8,6 @@ from . import util
 
 
 class SSHKey(object):
-    def __init__(self, name):
-        self.name = name
-
-    @classmethod
-    def create(cls, name, key):
-        self = cls(name)
-        self.save_key(key)
-
     @classmethod
     def rebuild_authorized_keys(cls):
         lines = []
