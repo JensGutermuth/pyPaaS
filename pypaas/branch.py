@@ -57,7 +57,7 @@ class Branch(object):
         for name, config in self.config['runners'].items():
             for runner_cls in runners.__all__:
                 if runner_cls.__name__ == config['type']:
-                    res[name] = runner_cls(self, config)
+                    res[name] = runner_cls(name, self, config)
                     break
             else:
                 raise ValueError('Runner type {} is unknown'

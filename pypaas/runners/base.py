@@ -10,7 +10,8 @@ from .. import util
 
 
 class BaseRunner(object):
-    def __init__(self, branch, config):
+    def __init__(self, name, branch, config):
+        self._name = name
         self.branch = branch
         self.config = config
 
@@ -21,7 +22,7 @@ class BaseRunner(object):
     @property
     def name(self):
         return '-'.join([
-            self.cls_name,
+            self._name,
             self.branch.repo.name,
             self.branch.name
         ])
