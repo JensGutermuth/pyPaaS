@@ -3,9 +3,13 @@
 
 A **repo** is a git repository. This is the canonical storage of source code and the only way to get code into pyPaaS or update it.
 
-An **app** represents a group of processes running code from a specific branch from a repo. You deploy an apps when you use `git push` to update a repo. You can only push to branches with an associated app.
+A **repo** has **branches**. You deploy an apps when you use `git push` to update a repo. You can only push to configured branches.
 
-A **checkout** is used internally. It's a specific commit from a repo checked out into a working directory to be build and used to run an app. An app can have zero (not yet deployed, therefore not running), one (running) or two (deploy in progress) checkouts.
+**branches** have **runnesr**. A **runner** does something useful with code, like starting a process, configuring nginx to serve static files, starting a process to serve as a backend for nginx and so on.
+
+A **checkout** is used internally. It's a specific commit from a repo checked out into a working directory to be build and used to run a branch. A branch can have zero (not yet deployed, therefore not running), one (running) or two (deploy in progress) checkouts.
+
+A **domain** bundles configuration for a nginx virtual host. **runners** inheriting from `NginxBase` (or implementing the interface) provide the contents of a `location` block each in the resulting nginx config.
 
 ## Installation
 
