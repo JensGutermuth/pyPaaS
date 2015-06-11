@@ -9,6 +9,7 @@ import sys
 
 import flock
 
+from .domain import Domain
 from .repo import Repo
 from .runners import SimpleProcess
 from .sshkey import SSHKey
@@ -105,6 +106,7 @@ def cmd_list():
 
 def cleanup():
     SimpleProcess.cleanup()
+    Domain.cleanup()
 
 
 def main():

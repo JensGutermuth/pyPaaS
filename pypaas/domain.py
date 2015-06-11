@@ -154,3 +154,13 @@ class Domain(object):
             raise RuntimeError('nginx configuration failed')
         if nginx_reload:
             self.nginx_reload()
+
+    @classmethod
+    def cleanup(cls):
+        config_files = set([d.nginx_config_path for d in cls.all()])
+        to_remove = []
+        for f in os.listdir((os.path.expanduser('~/nginx.d'))):
+            f = os.path.join(os.path.expanduser('~/nginx.d'), f)
+            if f not in config_files:
+                to_remove.append(f)
+        [os.unlink(f) for f in to_remove]
