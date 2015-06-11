@@ -6,7 +6,8 @@ import os.path
 from setuptools import find_packages, setup
 
 install_requires = [
-    'PyYAML>=3.11'
+    'PyYAML>=3.11',
+    'flock>=0.1'
 ]
 
 setup(
