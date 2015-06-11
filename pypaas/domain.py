@@ -97,15 +97,16 @@ class Domain(object):
         for path, config in self.config['locations'].items():
             c = config['upstream']
             try:
-                res[path] = Repo(c['repo']) \
-                    .branches[c['branch']] \
-                    .runners[c['runner']]
-                if res[path].in_maintenance and \
+                branch = Repo(c['repo']).branches[c['branch']]
+                runner = branch.runners[c['runner']]
+                if (runner.in_maintenance or
+                        branch.current_checkout is None) and \
                         'maintenance_upstream' in config:
                     c = config['maintenance_upstream']
-                    res[path] = Repo(c['repo']) \
-                        .branches[c['branch']] \
-                        .runners[c['runner']]
+                    branch = Repo(c['repo']).branches[c['branch']]
+                    runner = branch.runners[c['runner']]
+                if branch.current_checkout is not None:
+                    res[path] = runner
             except KeyError:
                 raise ValueError('Repo, branch or runner not found for {}'
                                  .format(repr(c)))
