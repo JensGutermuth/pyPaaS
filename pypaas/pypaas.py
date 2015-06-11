@@ -17,6 +17,7 @@ Usage:
     pypaas git-pre-receive-hook <repo_name>
     pypaas rebuild_authorized_keys
     pypaas rebuild [<repo_name> <branch>]
+    pypaas list
 """)
     sys.exit(1)
 
@@ -74,10 +75,12 @@ def main():
 
             for r_branch in branches:
                 r_branch.deploy(newref)
+
     elif sys.argv[1] == 'rebuild_authorized_keys':
         if len(sys.argv) != 2:
             print_usage_and_exit()
         SSHKey.rebuild_authorized_keys()
+
     elif sys.argv[1] == 'rebuild':
         if len(sys.argv) not in [2, 4]:
             print_usage_and_exit()
@@ -94,6 +97,18 @@ def main():
                       .format(b=b))
                 continue
             b.deploy(b.current_checkout.commit)
+
+    elif sys.argv[1] == 'list':
+        if len(sys.argv) != 2:
+            print_usage_and_exit()
+        print("\nRepos\n=====\n")
+        for r in Repo.all():
+            print('{}:'.format(r.name))
+            for b in r.branches.values():
+                print('\t{}:'.format(b.name))
+                for runner in b.runners.values():
+                    print('\t\t{r.name} ({r.cls_name})'
+                          .format(r=runner))
 
     else:
         print_usage_and_exit()
