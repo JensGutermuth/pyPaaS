@@ -16,6 +16,7 @@ Usage:
     pypaas git-receive-pack <repo_name>
     pypaas git-pre-receive-hook <repo_name>
     pypaas rebuild_authorized_keys
+    pypaas rebuild [<repo_name> <branch>]
 """)
     sys.exit(1)
 
@@ -77,5 +78,22 @@ def main():
         if len(sys.argv) != 2:
             print_usage_and_exit()
         SSHKey.rebuild_authorized_keys()
+    elif sys.argv[1] == 'rebuild':
+        if len(sys.argv) not in [2, 4]:
+            print_usage_and_exit()
+        if len(sys.argv) == 4:
+            repo = Repo(clean_repo_name(sys.argv[2]))
+            branches = [repo.branches[clean_repo_name(sys.argv[3])]]
+        else:
+            branches = []
+            for r in Repo.all():
+                branches.extend(r.branches.values())
+        for b in branches:
+            if b.current_checkout is None:
+                print('{b.repo.name}:{b.name} has no checkout. Skipping...'
+                      .format(b=b))
+                continue
+            b.deploy(b.current_checkout.commit)
+
     else:
         print_usage_and_exit()

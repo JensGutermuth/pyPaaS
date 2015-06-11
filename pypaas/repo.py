@@ -54,3 +54,8 @@ class Repo(object):
     def branches(self):
         return dict((name, Branch(self, name, branch_config))
                     for name, branch_config in self.config['branches'].items())
+
+    @classmethod
+    def all(cls):
+        for name in options.repos:
+            yield cls(name)
