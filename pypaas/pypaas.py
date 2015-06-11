@@ -10,6 +10,7 @@ import sys
 import flock
 
 from .repo import Repo
+from .runners import SimpleProcess
 from .sshkey import SSHKey
 
 
@@ -21,6 +22,7 @@ Usage:
     pypaas rebuild_authorized_keys
     pypaas rebuild [<repo_name> <branch>]
     pypaas list
+    pypaas cleanup
 """)
     sys.exit(1)
 
@@ -101,6 +103,10 @@ def cmd_list():
                       .format(r=runner))
 
 
+def cleanup():
+    SimpleProcess.cleanup()
+
+
 def main():
     with open(os.path.expanduser('~/.pypaas-lock'), 'w') as f:
         try:
@@ -146,6 +152,11 @@ def main():
                     if len(sys.argv) != 2:
                         print_usage_and_exit()
                     cmd_list()
+
+                elif sys.argv[1] == 'cleanup':
+                    if len(sys.argv) != 2:
+                        print_usage_and_exit()
+                    cleanup()
 
                 else:
                     print_usage_and_exit()

@@ -43,26 +43,30 @@ def svc_stop(service):
 
 def svc_destroy(service):
     print('destorying daemontools service {}'.format(service))
-    svc_stop(service)
-    svc_stop(service + '/log')
 
     try:
-        os.unlink(os.path.expanduser('~/services/{}/run'.format(service)))
+        os.unlink(os.path.expanduser('~/services/{}'.format(service)))
+    except FileNotFoundError:
+        pass
+
+    try:
+        os.unlink(os.path.expanduser('~/services-real/{}/run'.format(service)))
     except FileNotFoundError:
         pass
     try:
-        os.unlink(os.path.expanduser('~/services/{}/log/run'.format(service)))
+        os.unlink(os.path.expanduser('~/services-real/{}/log/run'.format(service)))
     except FileNotFoundError:
         pass
 
     subprocess.check_call([
-        'svc', '-x',
-        os.path.expanduser('~/services/{}'.format(service))
+        'svc', '-dx',
+        os.path.expanduser('~/services-real/{}/log'.format(service))
     ])
     subprocess.check_call([
-        'svc', '-x',
-        os.path.expanduser('~/services/{}/log'.format(service))
+        'svc', '-dx',
+        os.path.expanduser('~/services-real/{}'.format(service))
     ])
+    shutil.rmtree(os.path.expanduser('~/services-real/{}'.format(service)))
 
 
 def svc_wait(service):
@@ -85,16 +89,10 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
 
     def configure(self):
         util.mkdir_p(os.path.expanduser('~/services/'))
-        for s in os.listdir(os.path.expanduser('~/services')):
-            # clean up any old service definitions
-            if s.startswith(self.name + '-') and s not in self.service_names:
-                svc_destroy(s)
-                shutil.rmtree(os.path.join(
-                    os.path.expanduser('~/services'), s
-                ))
+        util.mkdir_p(os.path.expanduser('~/services-real/'))
 
         for idx, s in enumerate(self.service_names):
-            util.mkdir_p(os.path.expanduser('~/services/{}/log'.format(s)))
+            util.mkdir_p(os.path.expanduser('~/services-real/{}/log'.format(s)))
             env = copy.deepcopy(self.branch.config['env'])
             self.call_hook('env', env=env, idx=idx)
             args = dict(
@@ -104,14 +102,18 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
                                    in env.items())
             )
             util.replace_file(
-                os.path.expanduser('~/services/{}/log/run'.format(s)),
+                os.path.expanduser('~/services-real/{}/log/run'.format(s)),
                 logscript.format(**args),
                 chmod=0o755
             )
             util.replace_file(
-                os.path.expanduser('~/services/{}/run'.format(s)),
+                os.path.expanduser('~/services-real/{}/run'.format(s)),
                 runscript.format(**args),
                 chmod=0o755
+            )
+            os.symlink(
+                os.path.expanduser('~/services-real/{}'.format(s)),
+                os.path.expanduser('~/services/{}'.format(s))
             )
         for s in self.service_names:
             svc_wait(s)
@@ -130,3 +132,22 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
 
     def disable_maintenance(self):
         self.configure()
+
+    @classmethod
+    def cleanup(cls):
+        # avoid circle
+        from ..repo import Repo
+
+        runner_configs = set()
+        for r in Repo.all():
+            for b in r.branches.values():
+                for runner in b.runners.values():
+                    if isinstance(runner, cls):
+                        runner_configs.update(runner.service_names)
+
+        processes_to_delete = []
+        for f in os.listdir(os.path.expanduser('~/services-real')):
+            if f not in runner_configs:
+                processes_to_delete.append(f)
+        for p in processes_to_delete:
+            svc_destroy(p)
