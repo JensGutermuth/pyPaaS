@@ -49,7 +49,7 @@ class BaseRunner(object):
         except FileNotFoundError:
             state = dict()
         state[self.name] = {
-            started: datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
+            'started': datetime.datetime.now().strftime('%Y%m%d-%H%M%S')
         }
         util.replace_file(
             os.path.expanduser('~/maintenance-state.yml'),
