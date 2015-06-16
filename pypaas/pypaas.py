@@ -28,15 +28,11 @@ Usage:
     sys.exit(1)
 
 
-def clean_repo_name(repo_name):
-    if not isinstance(repo_name, str):
-        if len(repo_name) != 1:
-            raise RuntimeError('More than one <repo_name>')
-        repo_name = repo_name[0]
-
-    if repo_name.startswith("'") and repo_name.endswith("'"):
-        repo_name = repo_name[1:-1]
-    return repo_name
+def clean_args(args):
+    for a in args:
+        if a.startswith("'") and a.endswith("'"):
+            a = a[1:-1]
+        yield a
 
 
 def git_receive_pack(repo_name):
@@ -80,7 +76,7 @@ def git_pre_receive_hook(repo_name):
 def rebuild(repo_name, branch):
     if repo_name is not None:
         repo = Repo(repo_name)
-        branches = [repo.branches[clean_repo_name(sys.argv[3])]]
+        branches = [repo.branches[branch]]
     else:
         branches = []
         for r in Repo.all():
@@ -123,40 +119,41 @@ def main():
             # and subtile bugs.
             with flock.Flock(f, flock.LOCK_EX | flock.LOCK_NB):
 
-                if len(sys.argv) < 2:
+                args = list(clean_args(sys.argv))
+
+                if len(args) < 2:
                     print_usage_and_exit()
 
-                if sys.argv[1] == 'git-receive-pack':
-                    if len(sys.argv) != 3:
+                if args[1] == 'git-receive-pack':
+                    if len(args) != 3:
                         print_usage_and_exit()
-                    git_receive_pack(clean_repo_name(sys.argv[2]))
+                    git_receive_pack(args[2])
 
-                elif sys.argv[1] == 'git-pre-receive-hook':
-                    if len(sys.argv) != 3:
+                elif args[1] == 'git-pre-receive-hook':
+                    if len(args) != 3:
                         print_usage_and_exit()
-                    git_pre_receive_hook(clean_repo_name(sys.argv[2]))
+                    git_pre_receive_hook(args[2])
 
-                elif sys.argv[1] == 'rebuild_authorized_keys':
-                    if len(sys.argv) != 2:
+                elif args[1] == 'rebuild_authorized_keys':
+                    if len(args) != 2:
                         print_usage_and_exit()
                     SSHKey.rebuild_authorized_keys()
 
-                elif sys.argv[1] == 'rebuild':
-                    if len(sys.argv) not in [2, 4]:
+                elif args[1] == 'rebuild':
+                    if len(args) not in [2, 4]:
                         print_usage_and_exit()
-                    if len(sys.argv) == 4:
-                        rebuild(clean_repo_name(sys.argv[2]),
-                                clean_repo_name(sys.argv[3]))
+                    if len(args) == 4:
+                        rebuild(args[2], args[3])
                     else:
                         rebuild(None, None)
 
-                elif sys.argv[1] == 'list':
-                    if len(sys.argv) != 2:
+                elif args[1] == 'list':
+                    if len(args) != 2:
                         print_usage_and_exit()
                     cmd_list()
 
-                elif sys.argv[1] == 'cleanup':
-                    if len(sys.argv) != 2:
+                elif args[1] == 'cleanup':
+                    if len(args) != 2:
                         print_usage_and_exit()
                     cleanup()
 
