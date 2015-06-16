@@ -34,9 +34,10 @@ class Port(object):
 
     def free(self):
         state = self.get_state()
-        assert state[self.port]['runner_type'] == self.runner.__class__.__name__
-        assert state[self.port]['branch'] == self.runner.branch.name
-        assert state[self.port]['repo'] == self.runner.branch.repo.name
+        pstate = state[self.port]
+        assert pstate['runner_type'] == self.runner.__class__.__name__
+        assert pstate['branch'] == self.runner.branch.name
+        assert pstate['repo'] == self.runner.branch.repo.name
         del state[self.port]
         self.set_state(state)
 
@@ -44,6 +45,9 @@ class Port(object):
     def all_for_runner(cls, runner):
         state = cls.get_state()
         for p, v in state.items():
+            if not all(key in v for key in ['runner_type', 'branch', 'repo']):
+                # broken or old entry?
+                continue
             if v['runner_type'] == runner.__class__.__name__ and \
                     v['branch'] == runner.branch.name and \
                     v['repo'] == runner.branch.repo.name:
