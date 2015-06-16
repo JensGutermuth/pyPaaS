@@ -53,6 +53,12 @@ class Checkout(object):
             shutil.rmtree(d)
         return self
 
+    @property
+    def cmd_env(self):
+        env = self.branch.config.get('env', dict())
+        env.update(os.environ)
+        return env
+
     @classmethod
     def all_for_branch(cls, branch):
         try:
@@ -79,7 +85,8 @@ class Checkout(object):
         if not isinstance(hook, list):
             hook = [hook]
         for c in hook:
-            subprocess.check_call(c, shell=True, cwd=self.path)
+            subprocess.check_call(c, shell=True, cwd=self.path,
+                                  env=self.cmd_env)
 
     def build(self):
         self.run_hook_cmd('before_build')

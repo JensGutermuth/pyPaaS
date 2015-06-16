@@ -16,16 +16,19 @@ class NPMBuilder(BaseBuilder):
         # Delete all the crap npm likes to leave behind
         subprocess.check_call(
             'rm -rf /tmp/npm-*',
-            shell=True
+            shell=True,
+            env=self.checkout.cmd_env
         )
         subprocess.check_call(
             ['npm', 'install'],
-            cwd=self.checkout.path
+            cwd=self.checkout.path,
+            env=self.checkout.cmd_env
         )
         # Delete all the crap npm likes to leave behind
         subprocess.check_call(
             'rm -rf /tmp/npm-*',
-            shell=True
+            shell=True,
+            env=self.checkout.cmd_env
         )
 
 
@@ -37,5 +40,6 @@ class BowerBuilder(BaseBuilder):
     def build(self):
         subprocess.check_call(
             ['bower', 'install'],
-            cwd=self.checkout.path
+            cwd=self.checkout.path,
+            env=self.checkout.cmd_env
         )

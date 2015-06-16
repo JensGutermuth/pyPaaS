@@ -11,7 +11,8 @@ class PythonVirtualenvBuilder(BaseBuilder):
     def build(self):
         subprocess.check_call(
             ['virtualenv', 'venv'],
-            cwd=self.checkout.path
+            cwd=self.checkout.path,
+            env=self.checkout.cmd_env
         )
 
 
@@ -26,7 +27,8 @@ class PipBuilder(PythonVirtualenvBuilder):
         super(PipBuilder, self).build()
         subprocess.check_call(
             ['venv/bin/pip', 'install', '-r', 'requirements.txt'],
-            cwd=self.checkout.path
+            cwd=self.checkout.path,
+            env=self.checkout.cmd_env
         )
 
 
@@ -39,5 +41,6 @@ class SetupPyBuilder(PythonVirtualenvBuilder):
         super(SetupPyBuilder, self).build()
         subprocess.check_call(
             ['venv/bin/pip', 'install', '-e', '.'],
-            cwd=self.checkout.path
+            cwd=self.checkout.path,
+            env=self.checkout.cmd_env
         )
