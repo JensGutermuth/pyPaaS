@@ -88,6 +88,20 @@ class Checkout(object):
             subprocess.check_call(c, shell=True, cwd=self.path,
                                   env=self.cmd_env)
 
+    @property
+    def costum_cmds(self):
+        try:
+            return self.branch.config['costum_cmds']
+        except KeyError:
+            return dict()
+
+    def run_costum_cmd(self, name):
+        subprocess.check_call(
+            self.costum_cmds[name],
+            shell=True, cwd=self.path,
+            env=self.cmd_env
+        )
+
     def build(self):
         self.run_hook_cmd('before_build')
         for builder_cls in builders.__all__:
