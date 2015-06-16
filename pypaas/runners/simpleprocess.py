@@ -111,10 +111,13 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
                 runscript.format(**args),
                 chmod=0o755
             )
-            os.symlink(
-                os.path.expanduser('~/services-real/{}'.format(s)),
-                os.path.expanduser('~/services/{}'.format(s))
-            )
+            try:
+                os.symlink(
+                    os.path.expanduser('~/services-real/{}'.format(s)),
+                    os.path.expanduser('~/services/{}'.format(s))
+                )
+            except FileExistsError:
+                pass
         for s in self.service_names:
             svc_wait(s)
             svc_start(s)
