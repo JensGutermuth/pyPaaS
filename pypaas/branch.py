@@ -80,7 +80,6 @@ class Branch(object):
         self._current_checkout = new_checkout
         for runner in self.runners.values():
             runner.disable_maintenance()
-        Domain.configure_all()
 
         # TODO: health checks
 
@@ -89,6 +88,8 @@ class Branch(object):
             os.path.join(self.state_path, 'current_checkout'),
             new_checkout.name
         )
+
+        Domain.configure_all()
 
         for c in Checkout.all_for_branch(self):
             if c.name != new_checkout.name:
