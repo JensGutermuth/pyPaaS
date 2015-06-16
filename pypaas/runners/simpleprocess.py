@@ -127,10 +127,12 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
                 shutil.rmtree(path)
 
     def enable_maintenance(self):
+        super().enable_maintenance()
         for s in self.service_names:
             svc_stop(s)
 
     def disable_maintenance(self):
+        super().disable_maintenance()
         self.configure()
 
     @classmethod
