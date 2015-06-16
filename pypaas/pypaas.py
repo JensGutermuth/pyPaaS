@@ -35,8 +35,12 @@ def clean_args(args):
         yield a
 
 
-def git_receive_pack(repo_name):
-    repo = Repo(repo_name)
+def git_receive_pack(repo_name, lockfile):
+    with flock.Flock(lockfile, flock.LOCK_EX | flock.LOCK_NB):
+        repo = Repo(repo_name)
+
+    # Will call pypaas git-pre-receive-hook
+    # Would always fail if we still have the lock.
     subprocess.check_call(
         [
             "git-shell", "-c",
@@ -108,6 +112,21 @@ def cleanup():
 def main():
     with open(os.path.expanduser('~/.pypaas-lock'), 'w') as f:
         try:
+            args = list(clean_args(sys.argv))
+
+            if len(args) < 2:
+                print_usage_and_exit()
+
+            # This is a special case: It calls git-shell, which in turn
+            # will call pypaas git-pre-receive-hook. If we take the lock here,
+            # git-pre-receive-hook will always fail.
+            # git_receive_pack takes the lock as long as possible.
+            if args[1] == 'git-receive-pack':
+                if len(args) != 3:
+                    print_usage_and_exit()
+                git_receive_pack(args[2], lockfile=f)
+                return
+
             # This lock prevents two instances of pypaas from running
             # concurrently.
             # This is very important: pypaas is not designed to handle
@@ -118,18 +137,7 @@ def main():
             # a source of significant complexity and potential for non-obvious
             # and subtile bugs.
             with flock.Flock(f, flock.LOCK_EX | flock.LOCK_NB):
-
-                args = list(clean_args(sys.argv))
-
-                if len(args) < 2:
-                    print_usage_and_exit()
-
-                if args[1] == 'git-receive-pack':
-                    if len(args) != 3:
-                        print_usage_and_exit()
-                    git_receive_pack(args[2])
-
-                elif args[1] == 'git-pre-receive-hook':
+                if args[1] == 'git-pre-receive-hook':
                     if len(args) != 3:
                         print_usage_and_exit()
                     git_pre_receive_hook(args[2])
@@ -160,4 +168,8 @@ def main():
                 else:
                     print_usage_and_exit()
         except BlockingIOError:
-            print('pypaas is already running. Please try again later.')
+            sys.stderr.write(
+                'pypaas is already running. Please try again later.'
+            )
+            sys.stderr.flush()
+            sys.exit(1)
