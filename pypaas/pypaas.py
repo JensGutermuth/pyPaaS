@@ -24,7 +24,7 @@ Usage:
     pypaas rebuild [<repo_name> <branch>]
     pypaas list
     pypaas cleanup
-    pypaas costum_cmds <repo_name> <branch> <cmd>...
+    pypaas custom_cmds <repo_name> <branch> <cmd>...
 """)
     sys.exit(1)
 
@@ -110,13 +110,13 @@ def cleanup():
     Domain.cleanup()
 
 
-def costum_cmds(repo, branch, cmds):
+def custom_cmds(repo, branch, cmds):
     branch = Repo(name).branches[branch]
     if branch.current_checkout is None:
         print('This repo has not been deployed yet. Please deploy first.')
         sys.exit(1)
     for c in cmds:
-        branch.current_checkout.run_costum_cmd(c)
+        branch.current_checkout.run_custom_cmd(c)
 
 
 def main():
@@ -175,10 +175,10 @@ def main():
                         print_usage_and_exit()
                     cleanup()
 
-                elif args[1] == 'costum_cmds':
+                elif args[1] == 'custom_cmds':
                     if len(args) < 5:
                         print_usage_and_exit()
-                    costum_cmds(args[2], args[3], args[4:])
+                    custom_cmds(args[2], args[3], args[4:])
 
                 else:
                     print_usage_and_exit()

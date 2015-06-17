@@ -90,15 +90,15 @@ class Checkout(object):
                                   env=self.cmd_env)
 
     @property
-    def costum_cmds(self):
+    def custom_cmds(self):
         try:
-            return self.branch.config['costum_cmds']
+            return self.branch.config['custom_cmds']
         except KeyError:
             return dict()
 
-    def run_costum_cmd(self, name):
+    def run_custom_cmd(self, name):
         subprocess.check_call(
-            self.costum_cmds[name],
+            self.custom_cmds[name],
             shell=True, cwd=self.path,
             env=self.cmd_env
         )
