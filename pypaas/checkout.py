@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
 import datetime
 import os
 import os.path
@@ -55,7 +56,7 @@ class Checkout(object):
 
     @property
     def cmd_env(self):
-        env = self.branch.config.get('env', dict())
+        env = copy.deepcopy(self.branch.config.get('env', dict()))
         env.update(os.environ)
         return env
 
