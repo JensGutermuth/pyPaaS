@@ -110,8 +110,8 @@ def cleanup():
     Domain.cleanup()
 
 
-def custom_cmds(repo, branch, cmds):
-    branch = Repo(name).branches[branch]
+def custom_cmds(repo_name, branch, cmds):
+    branch = Repo(repo_name).branches[branch]
     if branch.current_checkout is None:
         print('This repo has not been deployed yet. Please deploy first.')
         sys.exit(1)
