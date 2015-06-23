@@ -12,7 +12,7 @@ install_requires = [
 
 setup(
     name='pyPaaS',
-    version='0.1alpha',
+    version='0.2.0',
     author="Jens Gutermuth, Fintura GmbH",
     author_email="jens.gutermuth@fintura.de",
     long_description=__doc__,
