@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import os
 import os.path
 import subprocess
 
@@ -25,11 +26,14 @@ class NPMBuilder(BaseBuilder):
             env=self.checkout.cmd_env
         )
         # Delete all the crap npm likes to leave behind
-        subprocess.check_call(
-            'rm -rf /tmp/npm-*',
-            shell=True,
-            env=self.checkout.cmd_env
-        )
+        for name in os.listdir('/tmp'):
+            fullname = os.path.join('/tmp', name)
+            if not name.startswith('npm-') or not os.path.isdir(fullname):
+                continue
+            try:
+                shutil.rmtree(fullname)
+            except:
+                pass
 
 
 class BowerBuilder(BaseBuilder):
