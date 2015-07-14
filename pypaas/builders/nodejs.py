@@ -23,7 +23,7 @@ class NPMBuilder(BaseBuilder):
                 continue
             try:
                 shutil.rmtree(fullname)
-            except:
+            except IOError:
                 pass
 
     def build(self):
