@@ -1,3 +1,4 @@
+[![Code Issues](http://www.quantifiedcode.com/api/v1/project/f78ad9da5ea04bbdbe5cf527efe2331e/badge.svg)](http://www.quantifiedcode.com/app/project/f78ad9da5ea04bbdbe5cf527efe2331e)
 
 ## Definitions
 
