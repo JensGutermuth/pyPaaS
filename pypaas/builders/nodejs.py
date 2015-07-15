@@ -13,7 +13,8 @@ class NPMBuilder(BaseBuilder):
     def is_applicable(self):
         return os.path.isfile(os.path.join(self.checkout.path, 'package.json'))
 
-    def delete_npm_crap(self):
+    @staticmethod
+    def delete_npm_crap():
         """
         Delete all the crap npm likes to leave behind in /tmp/npm-*
         """

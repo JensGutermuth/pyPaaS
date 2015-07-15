@@ -53,15 +53,15 @@ class Port(object):
                     v['repo'] == runner.branch.repo.name:
                 yield cls(runner, p)
 
-    @classmethod
-    def get_state(cls):
+    @staticmethod
+    def get_state():
         try:
             state = yaml.load(open(os.path.expanduser('~/ports.yml')))
             return state if state is not None else {}
         except FileNotFoundError:
             return {}
 
-    @classmethod
-    def set_state(cls, new_state):
+    @staticmethod
+    def set_state(new_state):
         util.replace_file(os.path.expanduser('~/ports.yml'),
                           yaml.dump(new_state))

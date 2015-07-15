@@ -8,8 +8,8 @@ from . import util
 
 
 class SSHKey(object):
-    @classmethod
-    def rebuild_authorized_keys(cls):
+    @staticmethod
+    def rebuild_authorized_keys():
         lines = []
         ssh_dir = os.path.expanduser('~/.ssh')
         util.mkdir_p(os.path.join(ssh_dir, 'authorized_keys.d'))
