@@ -72,7 +72,7 @@ ports: # required. Port range to use for nginx upstreams (and possibly more in t
 
 Let's add a repository next! Configurations for repositories goes into the `repo` subdirectory. Each file describes a repository with the same name minus the `.yml`.
 
-```
+```yaml
 # ~deploy/config/repo/node-js-sample.yml
 ---
 branches: # required
@@ -105,7 +105,7 @@ branches: # required
 
 With that done, let's wire the repository up to a domain. You can have one repository serve any number of domains and vice versa. Like with the repositories the filename is the domain name.
 
-```
+```yaml
 # ~deploy/config/domains/node-js-sample.example.com.yml
 ---
 locations: # required. Every key corresponds so a location block in the nginx config.
