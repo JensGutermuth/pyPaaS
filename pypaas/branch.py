@@ -65,7 +65,7 @@ class Branch(object):
         return res
 
     def deploy(self, commit):
-        # Has to here. repo -> branch -> domain -> repo is a circle otherwise
+        # Has to go here. repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain
 
         new_checkout = Checkout.create(self, commit)
@@ -96,7 +96,7 @@ class Branch(object):
                 c.remove()
 
     def restart(self):
-        # Has to here. repo -> branch -> domain -> repo is a circle otherwise
+        # Has to go here. repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain
 
         for runner in self.runners.values():
