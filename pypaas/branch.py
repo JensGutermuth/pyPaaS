@@ -94,3 +94,15 @@ class Branch(object):
         for c in Checkout.all_for_branch(self):
             if c.name != new_checkout.name:
                 c.remove()
+
+    def restart(self):
+        # Has to here. repo -> branch -> domain -> repo is a circle otherwise
+        from .domain import Domain
+
+        for runner in self.runners.values():
+            runner.enable_maintenance()
+        Domain.configure_all()
+
+        for runner in self.runners.values():
+            runner.disable_maintenance()
+        Domain.configure_all()
