@@ -70,8 +70,8 @@ class BaseRunner(object):
         )
 
     def restart(self):
-        enable_maintenance()
-        disable_maintenance()
+        self.enable_maintenance()
+        self.disable_maintenance()
 
 
 class NginxBase(BaseRunner):
