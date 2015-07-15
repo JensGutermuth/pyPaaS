@@ -28,10 +28,10 @@ class BaseRunner(object):
         ])
 
     def configure(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     def deconfigure(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def in_maintenance(self):
@@ -70,8 +70,8 @@ class BaseRunner(object):
         )
 
     def restart(self):
-        enable_maintenance()
-        disable_maintenance()
+        self.enable_maintenance()
+        self.disable_maintenance()
 
 
 class NginxBase(BaseRunner):
@@ -83,7 +83,7 @@ class NginxBase(BaseRunner):
     """
     @property
     def nginx_location(self):
-        raise NotImplemented
+        raise NotImplementedError
 
     @property
     def nginx_conf(self):

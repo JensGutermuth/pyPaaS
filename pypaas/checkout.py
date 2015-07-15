@@ -67,7 +67,7 @@ class Checkout(object):
                 options.BASEPATH, 'checkouts', branch.repo.name, branch.name
             ))
         except FileNotFoundError:
-            return []
+            return
         for basename in files:
             f = os.path.join(
                 options.BASEPATH, 'checkouts',

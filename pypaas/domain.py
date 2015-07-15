@@ -72,7 +72,7 @@ class Domain(object):
             d.configure(nginx_reload=False)
         cls.nginx_reload()
 
-    @classmethod
+    @staticmethod
     def nginx_configtest(cls):
         try:
             subprocess.check_call(['sudo', '/usr/sbin/nginx', '-t'])
@@ -80,8 +80,8 @@ class Domain(object):
             return False
         return True
 
-    @classmethod
-    def nginx_reload(cls):
+    @staticmethod
+    def nginx_reload():
         subprocess.check_call(['sudo', '/usr/sbin/nginx', '-s', 'reload'])
 
     @property

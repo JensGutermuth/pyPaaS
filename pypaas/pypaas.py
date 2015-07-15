@@ -68,7 +68,7 @@ def git_pre_receive_hook(repo_name):
             if r_branch.name == branch:
                 branches.append(r_branch)
 
-        if len(branches) == 0:
+        if not branches:
             sys.stderr.write(
                 'This branch is not configured!\n'
             )
