@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import copy
 import os
 import os.path
 import shutil
@@ -81,11 +80,14 @@ def svc_wait(service):
         time.sleep(0.05)
 
 
-class SimpleProcess(BaseRunner, util.HooksMixin):
+class SimpleProcess(BaseRunner):
     @property
     def service_names(self):
         return ['{}-{}'.format(self.name, i)
                 for i in range(self.config.get('process_count', 1))]
+
+    def get_process_env(self, **kwargs):
+        return self.branch.config['env']
 
     def configure(self):
         util.mkdir_p(os.path.expanduser('~/services/'))
@@ -93,8 +95,7 @@ class SimpleProcess(BaseRunner, util.HooksMixin):
 
         for idx, s in enumerate(self.service_names):
             util.mkdir_p(os.path.expanduser('~/services-real/{}/log'.format(s)))
-            env = copy.deepcopy(self.branch.config['env'])
-            self.call_hook('env', env=env, idx=idx)
+            env = self.get_process_env(idx=idx)
             args = dict(
                 checkout=self.branch.current_checkout,
                 cmd=self.config['cmd'],

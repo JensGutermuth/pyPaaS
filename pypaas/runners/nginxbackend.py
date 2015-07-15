@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
 import os
 import os.path
 import shutil
@@ -27,9 +28,9 @@ nginx_location = """
 """
 
 
-class NginxBackend(SimpleProcess, NginxBase, util.HooksMixin):
-    @util.HooksMixin.hook('env')
-    def env_hook(self, env, idx, **kwargs):
+class NginxBackend(SimpleProcess, NginxBase):
+    def get_process_env(self, idx, **kwargs):
+        env = copy.deepcopy(super().get_process_env(idx=idx, **kwargs))
         self.new_ports.append(Port(self))
         env['PORT'] = self.new_ports[-1].port
         return env
