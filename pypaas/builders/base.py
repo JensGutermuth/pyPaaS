@@ -13,8 +13,8 @@ class BaseBuilder(object):
         Looks at the checkout and determines, if this builder is applicable to
         the code. A python builder could for example check for a setup.py file.
         """
-        raise NotImplemented()
+        raise NotImplementedError
 
     def build(self):
         """Execute the build process"""
-        raise NotImplemented()
+        raise NotImplementedError
