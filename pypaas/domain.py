@@ -73,7 +73,7 @@ class Domain(object):
         cls.nginx_reload()
 
     @staticmethod
-    def nginx_configtest(cls):
+    def nginx_configtest():
         try:
             subprocess.check_call(['sudo', '/usr/sbin/nginx', '-t'])
         except subprocess.CalledProcessError:
