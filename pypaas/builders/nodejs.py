@@ -3,6 +3,7 @@
 
 import os
 import os.path
+import shutil
 import subprocess
 
 from .base import BaseBuilder
