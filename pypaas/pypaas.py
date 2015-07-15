@@ -22,6 +22,7 @@ Usage:
     pypaas git-pre-receive-hook <repo_name>
     pypaas rebuild_authorized_keys
     pypaas rebuild [<repo_name> <branch>]
+    pypaas restart [<repo_name> <branch>]
     pypaas list
     pypaas cleanup
     pypaas custom_cmds <repo_name> <branch> <cmd>...
@@ -94,6 +95,22 @@ def rebuild(repo_name, branch):
         b.deploy(b.current_checkout.commit)
 
 
+def restart(repo_name, branch):
+    if repo_name is not None:
+        repo = Repo(repo_name)
+        branches = [repo.branches[branch]]
+    else:
+        branches = []
+        for r in Repo.all():
+            branches.extend(r.branches.values())
+    for b in branches:
+        if b.current_checkout is None:
+            print('{b.repo.name}:{b.name} has no checkout. Skipping...'
+                  .format(b=b))
+            continue
+        b.restart()
+
+
 def cmd_list():
     print("\nRepos\n=====\n")
     for r in Repo.all():
@@ -164,6 +181,14 @@ def main():
                         rebuild(args[2], args[3])
                     else:
                         rebuild(None, None)
+
+                elif args[1] == 'restart':
+                    if len(args) not in [2, 4]:
+                        print_usage_and_exit()
+                    if len(args) == 4:
+                        restart(args[2], args[3])
+                    else:
+                        restart(None, None)
 
                 elif args[1] == 'list':
                     if len(args) != 2:
