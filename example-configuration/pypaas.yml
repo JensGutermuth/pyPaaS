@@ -1,0 +1,7 @@
+---
+# ------------------------------
+# required configuration
+# ------------------------------
+ports: # Port range to use for nginx upstreams (and possibly more in the future)
+  min: 61500
+  max: 61800

@@ -1,0 +1,23 @@
+---
+# The name of this file without the .yml extension is the domain name.
+# You have to have a top-level locations key containing a mapping.
+# Every key corresponds so a location block in the nginx config.
+locations: # required.
+    "/":
+        upstream: # required
+            repo: node-js-sample # required.
+            branch: master # required.
+            runner: node # required.
+    "/public":
+        upstream:
+            repo: node-js-sample
+            branch: master
+            runner: static
+ssl: false # defaults to false.
+# Expects if true:
+# - a certificate chain including necessary intermediate certificates at
+#   /etc/ssl/private/httpd/{domain}/{domain}.crt
+# - the private key at
+#   /etc/ssl/private/httpd/{domain}/{domain}.key
+# - a file with trusted CAs to verify OCSP responses at
+#   /etc/ssl/private/httpd/{domain}/trusted_chain.crt
