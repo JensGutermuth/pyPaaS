@@ -10,6 +10,7 @@ import sys
 import flock
 
 from .domain import Domain
+from .logging_util import logging_section, print_header
 from .repo import Repo
 from .runners import SimpleProcess
 from .sshkey import SSHKey
@@ -28,6 +29,11 @@ Usage:
     pypaas custom_cmds <repo_name> <branch> <cmd>...
 """)
     sys.exit(1)
+
+
+def print_error_and_exit(msg):
+    print_header('error: ' + msg, file=sys.stderr, flush=True)
+    sys.exit(2)
 
 
 def clean_args(args):
@@ -57,11 +63,10 @@ def git_pre_receive_hook(repo_name):
     repo = Repo(repo_name)
     for oldref, newref, refname in [l.split() for l in sys.stdin]:
         if not refname.startswith('refs/heads/'):
-            sys.stderr.write(
+            print_error_and_exit(
                 'Your are pushing something other than a branch.\n' +
                 'Only branches are currently supported targets!\n'
             )
-            sys.exit(1)
         branch = refname[len('refs/heads/'):]
 
         branches = []
@@ -70,13 +75,13 @@ def git_pre_receive_hook(repo_name):
                 branches.append(r_branch)
 
         if not branches:
-            sys.stderr.write(
-                'This branch is not configured!\n'
+            print_error_and_exit(
+                'This branch is not configured!'
             )
-            sys.exit(1)
 
-        for r_branch in branches:
-            r_branch.deploy(newref)
+        for b in branches:
+            with logging_section('deploy {0}/{1}'.format(b.repo.name, b.name)):
+                b.deploy(newref)
 
 
 def rebuild(repo_name, branch):
@@ -92,7 +97,8 @@ def rebuild(repo_name, branch):
             print('{b.repo.name}:{b.name} has no checkout. Skipping...'
                   .format(b=b))
             continue
-        b.deploy(b.current_checkout.commit)
+        with logging_section('rebuild {0}/{1}'.format(b.repo.name, b.name)):
+            b.deploy(b.current_checkout.commit)
 
 
 def restart(repo_name, branch):
@@ -108,7 +114,8 @@ def restart(repo_name, branch):
             print('{b.repo.name}:{b.name} has no checkout. Skipping...'
                   .format(b=b))
             continue
-        b.restart()
+        with logging_section('restart {0}/{1}'.format(b.repo.name, b.name)):
+            b.restart()
 
 
 def cmd_list():
@@ -130,10 +137,13 @@ def cleanup():
 def custom_cmds(repo_name, branch, cmds):
     branch = Repo(repo_name).branches[branch]
     if branch.current_checkout is None:
-        print('This repo has not been deployed yet. Please deploy first.')
-        sys.exit(1)
+        print_error_and_exit(
+            'This repo has not been deployed yet. Please deploy first.'
+        )
     for c in cmds:
-        branch.current_checkout.run_custom_cmd(c)
+        with logging_section('run costum_cmd {0}/{1} {3}'.format(
+                branch.repo.name, branch.name, c)):
+            branch.current_checkout.run_custom_cmd(c)
 
 
 def main():
@@ -208,8 +218,6 @@ def main():
                 else:
                     print_usage_and_exit()
         except BlockingIOError:
-            sys.stderr.write(
+            print_error_and_exit(
                 'pypaas is already running. Please try again later.'
             )
-            sys.stderr.flush()
-            sys.exit(1)

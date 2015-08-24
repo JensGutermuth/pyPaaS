@@ -10,6 +10,7 @@ import sys
 
 from . import options, runners, util
 from .checkout import Checkout
+from .logging_util import logging_section
 
 
 class Branch(object):
@@ -65,44 +66,55 @@ class Branch(object):
         return res
 
     def deploy(self, commit):
-        # Has to go here. repo -> branch -> domain -> repo is a circle otherwise
+        # Has to go here.
+        # repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain
 
-        new_checkout = Checkout.create(self, commit)
-        new_checkout.build()
+        with logging_section('create checkout'):
+            new_checkout = Checkout.create(self, commit)
 
-        for runner in self.runners.values():
-            runner.enable_maintenance()
-        Domain.configure_all()
+        with logging_section('build'):
+            new_checkout.build()
 
-        new_checkout.run_hook_cmd('maintenance')
+        with logging_section('enable maintenance mode'):
+            for runner in self.runners.values():
+                runner.enable_maintenance()
+            Domain.configure_all()
 
-        self._current_checkout = new_checkout
-        for runner in self.runners.values():
-            runner.disable_maintenance()
+        with logging_section('run maintenance hooks'):
+            new_checkout.run_hook_cmd('maintenance')
 
-        # TODO: health checks
+        with logging_section('disable maintenance mode'):
+            self._current_checkout = new_checkout
+            for runner in self.runners.values():
+                runner.disable_maintenance()
 
-        del self._current_checkout
-        util.replace_file(
-            os.path.join(self.state_path, 'current_checkout'),
-            new_checkout.name
-        )
+            del self._current_checkout
+            util.replace_file(
+                os.path.join(self.state_path, 'current_checkout'),
+                new_checkout.name
+            )
 
-        Domain.configure_all()
+            Domain.configure_all()
 
-        for c in Checkout.all_for_branch(self):
-            if c.name != new_checkout.name:
-                c.remove()
+        with logging_section('remove old checkouts'):
+            for c in Checkout.all_for_branch(self):
+                if c.name != new_checkout.name:
+                    c.remove()
 
     def restart(self):
-        # Has to go here. repo -> branch -> domain -> repo is a circle otherwise
+        # Has to go here.
+        # repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain
 
+        start_logging_section('enabling maintenance mode and stopping old processes...')
         for runner in self.runners.values():
             runner.enable_maintenance()
         Domain.configure_all()
 
+        start_logging_section(
+            'disabling maintenance mode and starting new processes...'
+        )
         for runner in self.runners.values():
             runner.disable_maintenance()
         Domain.configure_all()

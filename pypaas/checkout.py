@@ -7,6 +7,7 @@ import os
 import os.path
 import shutil
 import subprocess
+import sys
 
 from configparser import ConfigParser
 
@@ -29,21 +30,22 @@ class Checkout(object):
     def create(cls, branch, commit):
         name = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
         self = cls(branch, commit, name)
-        subprocess.check_call(
+        self.run_in(
             ['git', 'clone', '-q', self.branch.repo.path, self.path],
+            env={},
+            cwd=os.path.expanduser('~deploy')
+        )
+        self.run_in(
+            ['git', 'config', 'advice.detachedHead', 'false'],
             env={}
         )
-        subprocess.check_call(
-            ['git', 'config', 'advice.detachedHead', 'false'],
-            env={}, cwd=self.path
-        )
-        subprocess.check_call(
+        self.run_in(
             ['git', 'checkout', self.commit],
-            env={}, cwd=self.path
+            env={}
         )
-        subprocess.check_call(
+        self.run_in(
             ['git', 'submodule', 'update', '--init', '--recursive'],
-            env={}, cwd=self.path
+            env={}
         )
         to_delete = []
         for root, dirs, files in os.walk(self.path):
@@ -85,8 +87,7 @@ class Checkout(object):
         if not isinstance(hook, list):
             hook = [hook]
         for c in hook:
-            subprocess.check_call(c, shell=True, cwd=self.path,
-                                  env=self.cmd_env)
+            self.run_in(c, shell=True)
 
     @property
     def custom_cmds(self):
@@ -95,12 +96,27 @@ class Checkout(object):
         except KeyError:
             return dict()
 
+    def run_in(self, cmd, cwd=None, env=None, **kwargs):
+        cwd = self.path if cwd is None else cwd
+        env = self.cmd_env if env is None else env
+        # necessary for capturing of the output by replacing sys.stderr
+        try:
+            print(
+                subprocess.check_output(
+                    cmd,
+                    cwd=cwd,
+                    env=env,
+                    universal_newlines=True,
+                    stderr=subprocess.STDOUT,
+                    **kwargs
+                ), file=sys.stderr, flush=True
+            )
+        except subprocess.CalledProcessError as e:
+            print(e.output, file=sys.stderr, flush=True)
+            raise
+
     def run_custom_cmd(self, name):
-        subprocess.check_call(
-            self.custom_cmds[name],
-            shell=True, cwd=self.path,
-            env=self.cmd_env
-        )
+        self.run_in(self.custom_cmds[name], shell=True)
 
     def build(self):
         self.run_hook_cmd('before_build')
