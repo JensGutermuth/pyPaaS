@@ -79,7 +79,7 @@ class Checkout(object):
             yield cls(branch, commit, name)
 
     def run_hook_cmd(self, name, default=None):
-        hook = self.branch.config['hooks'].get(name, default=default)
+        hook = self.branch.config.get('hooks', {}).get(name, default)
         if hook is None:
             return
         if not isinstance(hook, list):
