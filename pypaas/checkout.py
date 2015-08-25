@@ -106,7 +106,7 @@ class Checkout(object):
         self.run_hook_cmd('before_build')
         self.run_hook_cmd(
             name='build',
-            default='if [ -f ./.deploy.sh ]; then ./.deploy.sh; fi'
+            default='if [ -f ./.build.sh ]; then ./.build.sh; fi'
         )
         self.run_hook_cmd('after_build')
 
