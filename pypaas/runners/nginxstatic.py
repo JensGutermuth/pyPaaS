@@ -12,7 +12,7 @@ from .base import NginxBase
 
 
 nginx_location = """
-    alias {path};
+    alias {path}/;
 """
 
 
@@ -22,6 +22,8 @@ class NginxStatic(NginxBase):
         subdirectory = self.config.get('subdirectory', '')
         while len(subdirectory) > 0 and subdirectory[0] == '/':
             subdirectory = subdirectory[1:]
+        while len(subdirectory) > 0 and subdirectory[-1] == '/':
+            subdirectory = subdirectory[:-1]
 
         return nginx_location.format(
             path=os.path.join(
