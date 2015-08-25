@@ -10,7 +10,7 @@ import subprocess
 
 from configparser import ConfigParser
 
-from . import builders, options
+from . import options
 
 
 class Checkout(object):
@@ -78,10 +78,9 @@ class Checkout(object):
             name, commit = basename.split('-')
             yield cls(branch, commit, name)
 
-    def run_hook_cmd(self, name):
-        try:
-            hook = self.branch.config['hooks'][name]
-        except KeyError:
+    def run_hook_cmd(self, name, default=None):
+        hook = self.branch.config['hooks'].get(name, default=default)
+        if hook is None:
             return
         if not isinstance(hook, list):
             hook = [hook]
@@ -105,10 +104,10 @@ class Checkout(object):
 
     def build(self):
         self.run_hook_cmd('before_build')
-        for builder_cls in builders.__all__:
-            builder = builder_cls(self)
-            if builder.is_applicable:
-                builder.build()
+        self.run_hook_cmd(
+            name='build',
+            default='if [ -f ./.deploy.sh ]; then ./.deploy.sh; fi'
+        )
         self.run_hook_cmd('after_build')
 
     def remove(self):
