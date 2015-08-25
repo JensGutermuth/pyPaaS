@@ -17,6 +17,7 @@ server {{
     rewrite ^ https://$http_host$request_uri? permanent;
 }}
 server {{
+    # TODO: drop spdy in favor of http2 as soon as nginx supports it
     listen 443 ssl spdy {extra_listen_options};
     listen [::]:443 ssl spdy {extra_listen_options};
     server_name {domain};
