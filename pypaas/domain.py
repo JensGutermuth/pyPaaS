@@ -17,8 +17,9 @@ server {{
     rewrite ^ https://$http_host$request_uri? permanent;
 }}
 server {{
-    listen 443 ssl {extra_listen_options};
-    listen [::]:443 ssl {extra_listen_options};
+    # TODO: drop spdy in favor of http2 as soon as nginx supports it
+    listen 443 ssl spdy {extra_listen_options};
+    listen [::]:443 ssl spdy {extra_listen_options};
     server_name {domain};
     ssl_certificate /etc/ssl/private/httpd/{domain}/{domain}.crt;
     ssl_certificate_key /etc/ssl/private/httpd/{domain}/{domain}.key;
