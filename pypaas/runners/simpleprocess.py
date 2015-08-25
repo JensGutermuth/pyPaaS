@@ -8,20 +8,20 @@ import subprocess
 import sys
 import time
 
-from .. import util
+from .. import options, util
 from .base import BaseRunner
 
 
-runscript = """#!/bin/sh
+runscript = options.main.get('runner_runscript_template', """#!/bin/sh
 cd {checkout.path}
 {env_cmds}
 exec 2>&1
 exec {cmd}
-"""
+""")
 
-logscript = """#!/bin/sh
+logscript = options.main.get('runner_logscript_template', """#!/bin/sh
 exec multilog t ./main
-"""
+""")
 
 
 def svc_start(service):
@@ -98,6 +98,8 @@ class SimpleProcess(BaseRunner):
             env = self.get_process_env(idx=idx)
             args = dict(
                 checkout=self.branch.current_checkout,
+                branch=self.branch,
+                repo=self.branch.repo,
                 cmd=self.config['cmd'],
                 env_cmds='\n'.join('export {}="{}"'.format(k, v) for k, v
                                    in env.items())
