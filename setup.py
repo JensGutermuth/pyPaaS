@@ -23,6 +23,7 @@ setup(
     entry_points={
         'console_scripts': [
             'pypaas=pypaas.pypaas:main',
+            'logging_wrapper=pypaas.logging_wrapper:logging_wrapper',
         ]
     }
 )

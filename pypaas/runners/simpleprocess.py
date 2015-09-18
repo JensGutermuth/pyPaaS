@@ -24,9 +24,25 @@ exec multilog t ./main
 """)
 
 
+def check_call(cmd, **kwargs):
+    # This captures the output in sys.stderr even if you replace it
+    try:
+        print(
+            subprocess.check_output(
+                cmd,
+                universal_newlines=True,
+                stderr=subprocess.STDOUT,
+                **kwargs
+            ), file=sys.stderr, flush=True
+        )
+    except subprocess.CalledProcessError as e:
+        print(e.output, file=sys.stderr, flush=True)
+        raise
+
+
 def svc_start(service):
     print('starting daemontools service {}'.format(service))
-    subprocess.check_call([
+    check_call([
         'svc', '-u',
         os.path.expanduser('~/services/{}'.format(service))
     ])
@@ -34,7 +50,7 @@ def svc_start(service):
 
 def svc_stop(service):
     print('stopping daemontools service {}'.format(service))
-    subprocess.check_call([
+    check_call([
         'svc', '-d',
         os.path.expanduser('~/services/{}'.format(service))
     ])
@@ -57,11 +73,11 @@ def svc_destroy(service):
     except FileNotFoundError:
         pass
 
-    subprocess.check_call([
+    check_call([
         'svc', '-dx',
         os.path.expanduser('~/services-real/{}/log'.format(service))
     ])
-    subprocess.check_call([
+    check_call([
         'svc', '-dx',
         os.path.expanduser('~/services-real/{}'.format(service))
     ])
