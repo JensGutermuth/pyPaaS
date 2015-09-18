@@ -33,9 +33,9 @@ def capture_stderr(dest):
 
 def print_header(msg, level=0, file=sys.stdout, flush=False):
     try:
-        char = '#=-'[level]
+        char = '#=-.'[level]
     except IndexError:
-        raise RuntimeError('only header levels >= 0 and < 2 are supported')
+        raise RuntimeError('only header levels >= 0 and < 3 are supported')
     print(char*70, file=file)
     print('{0}\n{0}  {1}\n{0}'.format(char*2, msg), file=file)
     print(char*70 + '\n', file=file, flush=flush)
@@ -43,9 +43,9 @@ def print_header(msg, level=0, file=sys.stdout, flush=False):
 
 def print_message(msg, level=0, file=sys.stdout, flush=False):
     try:
-        char = '#=-'[level]
+        char = '#=-.'[level]
     except IndexError:
-        raise RuntimeError('only header levels >= 0 and < 2 are supported')
+        raise RuntimeError('only header levels >= 0 and < 3 are supported')
     print('{0}  {1}'.format(char*2, msg), file=file)
 
 

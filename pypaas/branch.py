@@ -107,14 +107,13 @@ class Branch(object):
         # repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain
 
-        start_logging_section('enabling maintenance mode and stopping old processes...')
-        for runner in self.runners.values():
-            runner.enable_maintenance()
-        Domain.configure_all()
+        with logging_section('enable maintenance mode (stops old processes)'):
+            for runner in self.runners.values():
+                runner.enable_maintenance()
+            Domain.configure_all()
 
-        start_logging_section(
-            'disabling maintenance mode and starting new processes...'
-        )
-        for runner in self.runners.values():
-            runner.disable_maintenance()
-        Domain.configure_all()
+        with logging_section('disable maintenance mode ' +
+                             '(starts new processes)'):
+            for runner in self.runners.values():
+                runner.disable_maintenance()
+            Domain.configure_all()
