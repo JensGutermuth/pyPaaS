@@ -13,6 +13,7 @@ from .base import NginxBase
 
 nginx_location = """
     alias {path}/;
+    {extra_config}
 """
 
 
@@ -29,5 +30,6 @@ class NginxStatic(NginxBase):
             path=os.path.join(
                 self.branch.current_checkout.path,
                 subdirectory
-            )
+            ),
+            extra_config=self.branch.config.get('nginx_extra_config', '')
         )

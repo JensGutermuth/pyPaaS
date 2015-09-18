@@ -15,6 +15,7 @@ server {{
     listen [::]:80 {extra_listen_options};
     server_name {domain};
     rewrite ^ https://$http_host$request_uri? permanent;
+    {http_extra_options}
 }}
 server {{
     # TODO: drop spdy in favor of http2 as soon as nginx supports it
@@ -33,6 +34,7 @@ server {{
     ssl_stapling_verify on;
     ssl_trusted_certificate /etc/ssl/private/httpd/{domain}/trusted_chain.crt;
     resolver 8.8.8.8 8.8.4.4;
+    {https_extra_config}
     {locations}
 }}
 """  # nopep8 (silence pep8 warning about long lines)
@@ -44,6 +46,7 @@ server {{
     listen [::]:80 {extra_listen_options};
     server_name {domain};
     {locations}
+    {http_extra_options}
 }}
 """  # nopep8 (silence pep8 warning about long lines)
 
@@ -134,6 +137,12 @@ class Domain(object):
                     path=path,
                     contents=runner.nginx_location
                 ) for path, runner in self.runners.items()
+            ),
+            http_extra_config=self.config.get(
+                'nginx_http_extra_config', ''
+            ),
+            https_extra_config=self.config.get(
+                'nginx_https_extra_config', ''
             )
         )
         if self.config.get('ssl', True):
