@@ -1,34 +1,7 @@
-import subprocess
 import sys
 from contextlib import contextmanager
-from io import StringIO
 
 _section_stack = []
-_section_number = 0
-_real_stderr = sys.stderr
-
-
-class MultiplexWriter():
-    def __init__(self, files):
-        self.files = files
-
-    def write(self, data):
-        for f in self.files:
-            f.write(data)
-
-    def flush(self):
-        for f in self.files:
-            f.flush()
-
-
-@contextmanager
-def capture_stderr(dest):
-    old_stderr = sys.stderr
-    sys.stderr = MultiplexWriter(dest)
-    try:
-        yield
-    finally:
-        sys.stderr = old_stderr
 
 
 def print_header(msg, level=0, file=sys.stdout, flush=False):
@@ -52,25 +25,21 @@ def print_message(msg, level=0, file=sys.stdout, flush=False):
 @contextmanager
 def logging_section(name):
     global _section_stack
-    global _section_number
-    global _real_stderr
     _section_stack.append(name)
-    captured_stderr = StringIO()
     try:
-        with capture_stderr([captured_stderr, _real_stderr]):
-            print_header(
-                msg=" → ".join(_section_stack),
-                level=len(_section_stack) - 1,
-                file=sys.stderr,
-                flush=True)
+        print_header(
+            msg=" → ".join(_section_stack),
+            level=len(_section_stack) - 1,
+            file=sys.stderr,
+            flush=True)
 
-            yield
+        yield
 
-            print('', file=sys.stderr)  # prints a newline
-            print_message(
-                msg=" > ".join(_section_stack) + ' done\n',
-                file=sys.stderr,
-                level=len(_section_stack) - 1,
-                flush=True)
+        print('', file=sys.stderr)  # prints a newline
+        print_message(
+            msg=" > ".join(_section_stack) + ' done\n',
+            file=sys.stderr,
+            level=len(_section_stack) - 1,
+            flush=True)
     finally:
         _section_stack.pop()

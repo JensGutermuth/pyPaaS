@@ -100,20 +100,13 @@ class Checkout(object):
         cwd = self.path if cwd is None else cwd
         env = self.cmd_env if env is None else env
         # necessary for capturing of the output by replacing sys.stderr
-        try:
-            print(
-                subprocess.check_output(
-                    cmd,
-                    cwd=cwd,
-                    env=env,
-                    universal_newlines=True,
-                    stderr=subprocess.STDOUT,
-                    **kwargs
-                ), file=sys.stderr, flush=True
-            )
-        except subprocess.CalledProcessError as e:
-            print(e.output, file=sys.stderr, flush=True)
-            raise
+        subprocess.check_call(
+            cmd,
+            cwd=cwd,
+            env=env,
+            stderr=subprocess.STDOUT,
+            **kwargs
+        )
 
     def run_custom_cmd(self, name):
         self.run_in(self.custom_cmds[name], shell=True)

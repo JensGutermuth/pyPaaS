@@ -132,6 +132,8 @@ def cmd_list():
 def cleanup():
     SimpleProcess.cleanup()
     Domain.cleanup()
+    for r in Repo.all():
+        r.write_hook()
 
 
 def custom_cmds(repo_name, branch, cmds):

@@ -16,7 +16,7 @@ HOOKSCRIPT = """
 #!/usr/bin/env bash
 set -e; set -o pipefail;
 export PATH=$PATH:{path_suffix}
-cat | pypaas git-pre-receive-hook {repo.name}
+cat | logging_wrapper pypaas git-pre-receive-hook {repo.name}
 """.strip()
 
 
@@ -35,12 +35,7 @@ class Repo(object):
         if not os.path.isdir(os.path.join(self.path, 'refs/heads')):
             util.mkdir_p(os.path.join(options.BASEPATH, 'repos'))
             subprocess.check_output(['git', 'init', '--bare', self.path])
-            hook = os.path.join(self.path, 'hooks/pre-receive')
-            with open(hook, 'w') as hookf:
-                hookf.write(HOOKSCRIPT.format(
-                    repo=self, path_suffix=os.path.dirname(sys.executable)
-                ))
-            os.chmod(hook, stat.S_IXUSR | os.stat(hook).st_mode)
+            self.write_hook()
 
     @property
     def config(self):
@@ -59,3 +54,11 @@ class Repo(object):
     def all(cls):
         for name in options.repos:
             yield cls(name)
+
+    def write_hook(self):
+        hook = os.path.join(self.path, 'hooks/pre-receive')
+        with open(hook, 'w') as hookf:
+            hookf.write(HOOKSCRIPT.format(
+                repo=self, path_suffix=os.path.dirname(sys.executable)
+            ))
+        os.chmod(hook, stat.S_IXUSR | os.stat(hook).st_mode)
