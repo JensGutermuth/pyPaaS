@@ -1,0 +1,87 @@
+---
+# The name of this file without the .yml extension is the name of the repo.
+# For example: You can push to this repo via
+# git push deploy@HOST:node-js-sample
+#
+# You have to have a top-level branches key containing a mapping.
+# Every key corresponds to a branch you can push to. You can have as many
+# branches as you like. You will only be able to push to branches configured
+# here.
+branches:
+    master:
+        # Each branch is "run" somehow. You can have as many runners as you
+        # want. The names are used to refer to them in the domain config
+        # (see ../domains/*.yml).
+        runners:
+            node:
+                # NginxBackend starts processes and configures nginx as a
+                # load balancing reverse proxy.
+                type: NginxBackend
+                # Command to start a process
+                cmd: npm start
+                process_count: 4 # defaults to 1
+                # Is appended to the location block in any domain using this
+                # runner
+                # default: empty
+                nginx_extra_config: |
+                    gzip off;
+                # Is appended to the upstream block of this runner
+                # default: empty
+                nginx_extra_upstream_config: |
+                    keepalive 32;
+
+            static:
+                # NginxStatic configures nginx to serve static files from the
+                # file system.
+                type: NginxStatic
+                # subdirectory relative to the checkout root
+                subdirectory: public # defaults to the checkout root
+                # nginx_extra_config works here just like above.
+                # nginx_extra_upstream_config does nothing because there is no
+                # upstream block.
+
+            background_worker:
+                # ------------------------------
+                # required configuration
+                # ------------------------------
+                # SimpleProcess just starts processes and does not configure
+                # nginx in any way.
+                type: SimpleProcess
+                # Command to run ("node" is not a very useful example)
+                cmd: node
+                # neither nginx_extra_config nor nginx_extra_upstream_config
+                # make any sense in the context of a SimpleProcess runner.
+
+        # Defines the environment variables seen by all processes started by
+        # pyPaaS including during the build process.
+        env: # defaults to {}
+            NODE_ENV: production
+            # PORT is special. It is set by NginxBackend automatically to one
+            # in the range defined in the main configuration and differs
+            # per process started.
+        # Specify any additional commands to run during various stages.
+        # Values can a strings or a list of strings for multiple commands executed serially.
+        hooks:
+            # process following a git push:
+
+            # command(s) used to build whatever is in the repository
+            # default is shown here
+            build: if [ -f ./.build.sh ]; then ./.build.sh; fi
+
+            # maintenance mode is enabled (specific to one branch of a repo)
+            # old processes are stoped
+            # The strings in a list are treated as commands to run serially.
+            maintenance:
+                - 'echo "do backup"'
+                - 'echo "run migrations"'
+
+            # new processes are started
+
+            # maintenance mode is disabled
+
+            # deploy done
+
+        # Specify commands to run via
+        # ssh deploy@host custom_cmds <repo> <branch> <cmd>
+        custom_cmds: # defaults to {}
+            npm_list: npm list

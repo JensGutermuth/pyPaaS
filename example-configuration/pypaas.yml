@@ -1,0 +1,33 @@
+---
+# ------------------------------
+# required configuration
+# ------------------------------
+ports: # Port range to use for nginx upstreams (and possibly more in the future)
+  min: 61500
+  max: 61800
+
+# run script template for started processes
+# See the daemontools documentation
+# (http://thedjbway.b0llix.net/daemontools/overview.html) for details.
+# The value shown here is the default. The "key: |" is YAML syntax for a7
+# multiline string with newlines kept intact.
+runner_runscript_template: |
+  #!/bin/sh
+  cd {checkout.path}
+  {env_cmds}
+  exec 2>&1
+  exec {cmd}
+
+# run script template for started processes
+# See the daemontools documentation (http://thedjbway.b0llix.net/daemontools/overview.html) for details.
+# The value shown here is the default. The "key: |" is YAML syntax for a
+# multiline string with newlines kept intact.
+runner_logscript_template: |
+  #!/bin/sh
+  exec multilog t ./main
+
+# this commands get's all the output pypaas (and it's child processes) generate
+# during a deploy / build piped to stdin.
+# Default is to only show the output to the user invoking pypaas and not pipe it
+# somewhere else as well. The value shown here is an example.
+deploy_logger_cmd: /usr/bin/logger -t pypaas -p local3.info
