@@ -5,6 +5,7 @@
 locations: # required.
     "/":
         upstream: # required
+            # The three following keys reference a runner defined in ../repos
             repo: node-js-sample # required.
             branch: master # required.
             runner: node # required.
@@ -13,7 +14,18 @@ locations: # required.
             repo: node-js-sample
             branch: master
             runner: static
-ssl: false # defaults to false.
+
+# Is appended to the http listen block
+# default: empty
+nginx_http_extra_config: |
+    gzip on;
+
+# Is appended to the https listen block
+# default: empty
+nginx_https_extra_config: |
+    gzip off;
+
+ssl: false # defaults to true.
 # Expects if true:
 # - a certificate chain including necessary intermediate certificates at
 #   /etc/ssl/private/httpd/{domain}/{domain}.crt
