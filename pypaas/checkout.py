@@ -112,12 +112,10 @@ class Checkout(object):
         self.run_in(self.custom_cmds[name], shell=True)
 
     def build(self):
-        self.run_hook_cmd('before_build')
         self.run_hook_cmd(
             name='build',
             default='if [ -f ./.build.sh ]; then ./.build.sh; fi'
         )
-        self.run_hook_cmd('after_build')
 
     def remove(self):
         shutil.rmtree(self.path)
