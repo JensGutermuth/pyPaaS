@@ -17,6 +17,7 @@ upstream = "    server {host}:{port};"
 
 nginx_conf = """
 upstream backend_{name} {{
+{extra_upstream_config}
 {upstreams}
 }}
 """
@@ -25,6 +26,7 @@ nginx_location = """
     proxy_pass http://backend_{name};
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;
+    {extra_config}
 """
 
 
@@ -51,7 +53,8 @@ class NginxBackend(SimpleProcess, NginxBase):
     @property
     def nginx_location(self):
         return nginx_location.format(
-            name=self.name
+            name=self.name,
+            extra_config=self.branch.config.get('nginx_extra_config', '')
         )
 
     @property
@@ -64,4 +67,8 @@ class NginxBackend(SimpleProcess, NginxBase):
                     port=p.port,
                 ) for p in Port.all_for_runner(self)
             ),
+            extra_upstream_config=self.branch.config.get(
+                'nginx_extra_upstream_config',
+                ''
+            )
         )
