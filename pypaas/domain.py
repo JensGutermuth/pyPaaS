@@ -46,7 +46,7 @@ server {{
     listen [::]:80 {extra_listen_options};
     server_name {domain};
     {locations}
-    {http_extra_options}
+    {http_extra_config}
 }}
 """  # nopep8 (silence pep8 warning about long lines)
 
