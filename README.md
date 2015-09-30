@@ -88,6 +88,12 @@ Let's deploy the node.js sample app:
 ```
 you@your-machine:~$ git clone https://github.com/heroku/node-js-sample
 you@your-machine:~$ cd node-js-sample
+you@your-machine:~$ cat > .build.sh <<EOF
+#!/bin/bash
+npm install
+EOF
+you@your-machine:~$ chmod +x .build.sh
+you@your-machine:~$ git add .build.sh && git commit -m "add build script"
 you@your-machine:~$ git push deploy@your-server:node-js-sample
 ```
 
