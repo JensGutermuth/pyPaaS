@@ -5,7 +5,7 @@
 pyPaaS has a few dependencies we need to install first:
 
 ```
-root@host$ apt-get install python-virtualenv python3.4-dev libyaml-dev daemontools daemontools-run
+root@host$ apt-get install build-essential python3.4-dev python3-pip virtualenv libyaml-dev daemontools daemontools-run git rsync
 ```
 
 
@@ -45,6 +45,13 @@ Installing setuptools, pip...done.
 deploy@host:~$ venv/bin/pip install -e pyPaaS/
 ```
 
+Create configuration and .ssh directories
+
+```
+deploy@host:~$ mkdir -p ~/config/domains ~/config/repos ~/.ssh/authorized_keys.d
+deploy@host:~$ chmod 700 ~/.ssh
+```
+
 To run stuff we need to configure daemontools
 
 ```
@@ -53,6 +60,8 @@ root@host:~$ cp ~deploy/pyPaaS/daemontools-run /etc/service/pyPaaS/run.new
 root@host:~$ chmod 755 /etc/service/pyPaaS/run.new
 root@host:~$ mv /etc/service/pyPaaS/run.new /etc/service/pyPaaS/run
 ```
+
+Now add your configuration in `~deploy/config`, your SSH public keys in `~deploy/.ssh/authorized_keys.d` and run `/home/deploy/venv/bin/pypaas rebuild_authorized_keys` as `deploy` to assemble the actual `authorized_keys` file.
 
 That's it :).
 
