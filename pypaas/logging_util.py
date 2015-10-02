@@ -37,7 +37,7 @@ def logging_section(name):
 
         print('', file=sys.stderr)  # prints a newline
         print_message(
-            msg=" > ".join(_section_stack) + ' done\n',
+            msg=" → ".join(_section_stack) + ' done\n',
             file=sys.stderr,
             level=len(_section_stack) - 1,
             flush=True)
