@@ -53,6 +53,7 @@ server {{
 location = """
 location {path} {{
     {contents}
+    {extra_config}
 }}
 """
 
@@ -135,7 +136,9 @@ class Domain(object):
             locations='\n'.join(
                 location.format(
                     path=path,
-                    contents=runner.nginx_location
+                    contents=runner.nginx_location,
+                    extra_config=self.config['locations'][path]
+                        .get('nginx_extra_config', '')
                 ) for path, runner in self.runners.items()
             ),
             http_extra_config=self.config.get(
