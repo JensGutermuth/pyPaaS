@@ -15,7 +15,7 @@ server {{
     listen [::]:80 {extra_listen_options};
     server_name {domain};
     rewrite ^ https://$http_host$request_uri? permanent;
-    {http_extra_options}
+    {http_extra_config}
 }}
 server {{
     # TODO: drop spdy in favor of http2 as soon as nginx supports it
