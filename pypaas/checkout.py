@@ -23,7 +23,7 @@ class Checkout(object):
         return os.path.join(
             options.BASEPATH, 'checkouts',
             self.branch.repo.name, self.branch.name,
-            '{}-{}'.format(self.name, self.commit[:11])
+            '{0}-{1}'.format(self.name, self.commit[:11])
         )
 
     @classmethod

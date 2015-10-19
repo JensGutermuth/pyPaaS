@@ -23,7 +23,7 @@ def logging_wrapper():
         def real_relay():
             while True:
                 s = src.read(1)
-                if len(s) == 0:
+                if not s:
                     break
                 for idx, d in enumerate(dsts):
                     try:

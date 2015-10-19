@@ -170,7 +170,7 @@ class Domain(object):
 
     @classmethod
     def cleanup(cls):
-        config_files = set([d.nginx_config_path for d in cls.all()])
+        config_files = {d.nginx_config_path for d in cls.all()}
         to_remove = []
         for f in os.listdir((os.path.expanduser('~/nginx.d'))):
             f = os.path.join(os.path.expanduser('~/nginx.d'), f)
