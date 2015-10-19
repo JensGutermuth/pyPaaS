@@ -1,3 +1,4 @@
 #!/bin/sh
 setuidgid deploy mkdir -p ~deploy/services
+setuidgid deploy mkdir -p ~deploy/services-real
 exec setuidgid deploy svscan ~deploy/services
