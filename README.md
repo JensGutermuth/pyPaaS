@@ -33,7 +33,7 @@ We can now grab the code and configure a virtualenv!
 root@host:~$ su deploy
 deploy@host:/root$ cd ~
 deploy@host:~$ # For production usage:
-deploy@host:~$ git clone git@code.fintura.work:fintura-it/pyPaaS.git
+deploy@host:~$ git clone https://github.com/fintura/pyPaaS.git
 deploy@host:~$ # For development:
 deploy@host:~$ ln -s <WHEREEVER YOUR CHECKOUT IS> pyPaaS
 deploy@host:~$ virtualenv --python=python3.4 venv
