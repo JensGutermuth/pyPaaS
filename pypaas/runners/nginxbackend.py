@@ -29,6 +29,12 @@ nginx_location = """
     {extra_config}
 """
 
+uwsgi_nginx_location = """
+    uwsgi_pass uwsgi://backend_{name};
+    include uwsgi_params;
+    {extra_config}
+"""
+
 
 class NginxBackend(SimpleProcess, NginxBase):
     def get_process_env(self, idx, **kwargs):
@@ -70,4 +76,14 @@ class NginxBackend(SimpleProcess, NginxBase):
             ),
             extra_upstream_config=self.branch.config['runners'][self._name]
                                       .get('nginx_extra_upstream_config', '')
+        )
+
+
+class UwsgiNginxBackend(NginxBackend):
+    @property
+    def nginx_location(self):
+        return uwsgi_nginx_location.format(
+            name=self.name,
+            extra_config=self.branch.config['runners'][self._name]
+                             .get('nginx_extra_config', '')
         )
