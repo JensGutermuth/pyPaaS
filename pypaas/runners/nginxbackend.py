@@ -54,7 +54,8 @@ class NginxBackend(SimpleProcess, NginxBase):
     def nginx_location(self):
         return nginx_location.format(
             name=self.name,
-            extra_config=self.branch.config.get('nginx_extra_config', '')
+            extra_config=self.branch.config['runners'][self._name]
+                             .get('nginx_extra_config', '')
         )
 
     @property
@@ -67,8 +68,6 @@ class NginxBackend(SimpleProcess, NginxBase):
                     port=p.port,
                 ) for p in Port.all_for_runner(self)
             ),
-            extra_upstream_config=self.branch.config.get(
-                'nginx_extra_upstream_config',
-                ''
-            )
+            extra_upstream_config=self.branch.config['runners'][self._name]
+                                      .get('nginx_extra_upstream_config', '')
         )
