@@ -54,7 +54,8 @@ class NginxBackend(SimpleProcess, NginxBase):
     def nginx_location(self):
         return nginx_location.format(
             name=self.name,
-            extra_config=self.branch.config.get('nginx_extra_config', '')
+            extra_config=self.branch.config['runners'][self._name]
+                             .get('nginx_extra_config', '')
         )
 
     @property
