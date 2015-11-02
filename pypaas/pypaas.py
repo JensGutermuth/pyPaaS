@@ -143,7 +143,7 @@ def custom_cmds(repo_name, branch, cmds):
             'This repo has not been deployed yet. Please deploy first.'
         )
     for c in cmds:
-        with logging_section('run costum_cmd {0}/{1} {3}'.format(
+        with logging_section('run costum_cmd {0}/{1} {2}'.format(
                 branch.repo.name, branch.name, c)):
             branch.current_checkout.run_custom_cmd(c)
 
