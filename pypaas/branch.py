@@ -79,7 +79,7 @@ class Branch(object):
         with logging_section('enable maintenance mode'):
             for runner in self.runners.values():
                 runner.enable_maintenance()
-            Domain.configure_all()
+            Domain.configure_all(new_checkout.path)
 
         with logging_section('run maintenance hooks'):
             new_checkout.run_hook_cmd('maintenance')
@@ -95,7 +95,7 @@ class Branch(object):
                 new_checkout.name
             )
 
-            Domain.configure_all()
+            Domain.configure_all(new_checkout.path)
 
         with logging_section('remove old checkouts'):
             for c in Checkout.all_for_branch(self):
@@ -103,6 +103,7 @@ class Branch(object):
                     c.remove()
 
     def restart(self):
+        # FIXME: we need to figure out the checkout path here
         # Has to go here.
         # repo -> branch -> domain -> repo is a circle otherwise
         from .domain import Domain

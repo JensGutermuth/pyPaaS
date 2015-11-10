@@ -72,9 +72,9 @@ class Domain(object):
             yield cls(key)
 
     @classmethod
-    def configure_all(cls):
+    def configure_all(cls, checkout_path=None):
         for d in cls.all():
-            d.configure(nginx_reload=False)
+            d.configure(nginx_reload=False, checkout_path=checkout_path)
         cls.nginx_reload()
 
     @staticmethod
@@ -117,7 +117,7 @@ class Domain(object):
                                  .format(repr(c)))
         return res
 
-    def configure(self, nginx_reload=True):
+    def configure(self, nginx_reload=True, checkout_path=None):
         util.mkdir_p(os.path.expanduser('~/nginx.d/'))
         try:
             # Remove old broken config
@@ -125,8 +125,12 @@ class Domain(object):
         except FileNotFoundError:
             pass
 
+        extraArgs = dict(
+            checkout_path=checkout_path
+        )
         args = dict(
             domain=self.name,
+            checkout_path=checkout_path,
             extra_listen_options=self.config.get(
                 'extra_listen_options', ''
             ),
@@ -143,10 +147,10 @@ class Domain(object):
             ),
             http_extra_config=self.config.get(
                 'nginx_http_extra_config', ''
-            ),
+            ).format(**extraArgs),
             https_extra_config=self.config.get(
                 'nginx_https_extra_config', ''
-            )
+            ).format(**extraArgs)
         )
         if self.config.get('ssl', True):
             util.replace_file(
