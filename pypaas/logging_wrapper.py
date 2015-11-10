@@ -3,9 +3,9 @@ import shlex
 import subprocess
 import sys
 import time
-from threading import Thread
-
+from contextlib import suppress
 from queue import Queue
+from threading import Thread
 
 from .options import main
 
@@ -26,12 +26,10 @@ def logging_wrapper():
                 if not s:
                     break
                 for idx, d in enumerate(dsts):
-                    try:
+                    with suppress(BrokenPipeError):
                         d.write(s)
                         d.flush()
-                    except BrokenPipeError:
-                        # Happens if a logger dies prematurely
-                        pass
+
         return real_relay
 
     logger = subprocess.Popen(
