@@ -1,4 +1,4 @@
-[![Code Issues](https://www.quantifiedcode.com/api/v1/project/ce76dbd9181a4a788b4cf8eb52f19085/badge.svg)](https://www.quantifiedcode.com/app/project/ce76dbd9181a4a788b4cf8eb52f19085)
+[![Code Issues](https://www.quantifiedcode.com/api/v1/project/3f830be389594ca2bf23d33d4f1cedc4/badge.svg)](https://www.quantifiedcode.com/app/project/3f830be389594ca2bf23d33d4f1cedc4)
 
 ## Installation
 
