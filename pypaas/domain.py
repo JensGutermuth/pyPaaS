@@ -3,6 +3,7 @@
 import os
 import os.path
 import subprocess
+from contextlib import suppress
 
 from . import options, util
 from .repo import Repo
@@ -119,11 +120,9 @@ class Domain(object):
 
     def configure(self, nginx_reload=True):
         util.mkdir_p(os.path.expanduser('~/nginx.d/'))
-        try:
+        with suppress(FileNotFoundError):
             # Remove old broken config
             os.unlink(self.nginx_config_path + '.broken')
-        except FileNotFoundError:
-            pass
 
         args = dict(
             domain=self.name,
