@@ -2,8 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from .simpleprocess import SimpleProcess
-from .nginxbackend import NginxBackend
+from .nginxbackend import NginxBackend, UwsgiNginxBackend
 from .nginxstatic import NginxStatic
 
 
-__all__ = [SimpleProcess, NginxBackend, NginxStatic]
+__all__ = [SimpleProcess, NginxBackend, UwsgiNginxBackend, NginxStatic]
