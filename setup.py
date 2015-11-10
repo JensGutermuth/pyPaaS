@@ -14,7 +14,7 @@ setup(
     name='pyPaaS',
     version='0.4.5',
     author="Jens Gutermuth, Fintura GmbH",
-    author_email="jens.gutermuth@fintura.de",
+    author_email="pypaas@jensgutermuth.de",
     long_description=__doc__,
     packages=find_packages(),
     include_package_data=True,
