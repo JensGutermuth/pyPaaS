@@ -20,8 +20,8 @@ server {{
 }}
 server {{
     # TODO: drop spdy in favor of http2 as soon as nginx supports it
-    listen 443 ssl spdy {extra_listen_options};
-    listen [::]:443 ssl spdy {extra_listen_options};
+    listen 443 ssl http2 {extra_listen_options};
+    listen [::]:443 ssl http2 {extra_listen_options};
     server_name {domain};
     ssl_certificate {ssl_certificate};
     ssl_certificate_key {ssl_certificate_key};
