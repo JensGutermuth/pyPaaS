@@ -23,8 +23,8 @@ server {{
     listen 443 ssl spdy {extra_listen_options};
     listen [::]:443 ssl spdy {extra_listen_options};
     server_name {domain};
-    ssl_certificate /etc/ssl/private/httpd/{domain}/{domain}.crt;
-    ssl_certificate_key /etc/ssl/private/httpd/{domain}/{domain}.key;
+    ssl_certificate {ssl_certificate};
+    ssl_certificate_key {ssl_certificate_key};
     ssl_session_timeout 5m;
     ssl_dhparam /etc/ssl/private/httpd/dhparam.pem;
     ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
@@ -33,7 +33,7 @@ server {{
     add_header Strict-Transport-Security max-age=15768000;
     ssl_stapling on;
     ssl_stapling_verify on;
-    ssl_trusted_certificate /etc/ssl/private/httpd/{domain}/trusted_chain.crt;
+    ssl_trusted_certificate {ssl_certificate_chain};
     resolver 8.8.8.8 8.8.4.4;
     {https_extra_config}
     {locations}
@@ -145,6 +145,24 @@ class Domain(object):
             ),
             https_extra_config=self.config.get(
                 'nginx_https_extra_config', ''
+            ),
+            ssl_certificate=self.config.get(
+                'ssl_certificate',
+                '/etc/ssl/private/httpd/{domain}/{domain}.crt'.format(
+                    domain=self.name
+                )
+            ),
+            ssl_certificate_key=self.config.get(
+                'ssl_certificate_key',
+                '/etc/ssl/private/httpd/{domain}/{domain}.key'.format(
+                    domain=self.name
+                )
+            ),
+            ssl_certificate_chain=self.config.get(
+                'ssl_certificate_chain',
+                '/etc/ssl/private/httpd/{domain}/trusted_chain.crt'.format(
+                    domain=self.name
+                )
             )
         )
         if self.config.get('ssl', True):

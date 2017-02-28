@@ -29,7 +29,10 @@ ssl: false # defaults to true.
 # Expects if true:
 # - a certificate chain including necessary intermediate certificates at
 #   /etc/ssl/private/httpd/{domain}/{domain}.crt
+#   (or set your own path with ssl_certificate)
 # - the private key at
 #   /etc/ssl/private/httpd/{domain}/{domain}.key
+#   (or set your own path with ssl_certificate_key)
 # - a file with trusted CAs to verify OCSP responses at
 #   /etc/ssl/private/httpd/{domain}/trusted_chain.crt
+#   (or set your own path with ssl_certificate_chain)
