@@ -1,14 +1,13 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import copy
-import datetime
 import os
-import os.path
-import shutil
-import subprocess
 import sys
-
+import copy
+import shutil
+import os.path
+import datetime
+import subprocess
 from configparser import ConfigParser
 
 from . import options
@@ -60,6 +59,7 @@ class Checkout(object):
     def cmd_env(self):
         env = copy.deepcopy(self.branch.config.get('env', dict()))
         env.update(os.environ)
+        env['GIT_COMMIT'] = self.commit
         return env
 
     @classmethod
