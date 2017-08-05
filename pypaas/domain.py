@@ -22,7 +22,7 @@ server {{
     listen 443 ssl http2 {extra_listen_options};
     listen [::]:443 ssl http2 {extra_listen_options};
     server_name {domain};
-    {{ssl_config}}
+    {ssl_config}
     ssl_certificate {ssl_certificate};
     ssl_certificate_key {ssl_certificate_key};
     ssl_trusted_certificate {ssl_certificate_chain};
