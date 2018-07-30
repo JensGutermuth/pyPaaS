@@ -103,7 +103,7 @@ class SimpleProcess(BaseRunner):
                 for i in range(self.config.get('process_count', 1))]
 
     def get_process_env(self, **kwargs):
-        return self.branch.config['env']
+        return self.branch.current_checkout.cmd_env
 
     def configure(self):
         util.mkdir_p(os.path.expanduser('~/services/'))

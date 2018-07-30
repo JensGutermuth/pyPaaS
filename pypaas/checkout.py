@@ -2,13 +2,11 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
 import copy
 import shutil
 import os.path
 import datetime
 import subprocess
-from configparser import ConfigParser
 
 from . import options
 
