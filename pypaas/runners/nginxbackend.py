@@ -3,12 +3,7 @@
 
 import copy
 import os
-import os.path
-import shutil
-import subprocess
-import sys
 
-from .. import util
 from ..portallocator import Port
 from .base import NginxBase
 from .simpleprocess import SimpleProcess
