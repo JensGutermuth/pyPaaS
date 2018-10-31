@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import time
+import shlex
 
 from .. import options, util
 from .base import BaseRunner
@@ -117,8 +118,11 @@ class SimpleProcess(BaseRunner):
                 branch=self.branch,
                 repo=self.branch.repo,
                 cmd=self.config['cmd'],
-                env_cmds='\n'.join('export {}="{}"'.format(k, v) for k, v
-                                   in env.items())
+                env_cmds='\n'.join(
+                    'export {}={}'.format(
+                        k, shlex.quote(v)
+                    ) for k, v in env.items()
+                )
             )
             util.replace_file(
                 os.path.expanduser('~/services-real/{}/log/run'.format(s)),
