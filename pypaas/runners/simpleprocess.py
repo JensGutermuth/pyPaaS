@@ -120,7 +120,7 @@ class SimpleProcess(BaseRunner):
                 cmd=self.config['cmd'],
                 env_cmds='\n'.join(
                     'export {}={}'.format(
-                        k, shlex.quote(v)
+                        k, shlex.quote(str(v))
                     ) for k, v in env.items()
                 )
             )
