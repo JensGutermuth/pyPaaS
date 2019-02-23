@@ -16,7 +16,7 @@ HOOKSCRIPT = """
 #!/usr/bin/env bash
 set -e; set -o pipefail;
 export PATH=$PATH:{path_suffix}
-cat | logging_wrapper pypaas git-pre-receive-hook {repo.name}
+logging_wrapper pypaas git-update-hook {repo.name} $1 $2 $3
 """.strip()
 
 
@@ -56,7 +56,7 @@ class Repo(object):
             yield cls(name)
 
     def write_hook(self):
-        hook = os.path.join(self.path, 'hooks/pre-receive')
+        hook = os.path.join(self.path, 'hooks/update')
         with open(hook, 'w') as hookf:
             hookf.write(HOOKSCRIPT.format(
                 repo=self, path_suffix=os.path.dirname(sys.executable)
