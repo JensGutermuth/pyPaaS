@@ -55,8 +55,10 @@ class Checkout(object):
 
     @property
     def cmd_env(self):
-        env = copy.deepcopy(self.branch.config.get('env', dict()))
+        env = dict()
         env.update(os.environ)
+        if 'env' in self.branch.config:
+            env.update(self.branch.config['env'])
         env['GIT_COMMIT'] = self.commit
         return env
 
