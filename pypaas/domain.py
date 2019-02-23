@@ -67,6 +67,7 @@ class Domain(object):
     def configure_all(cls):
         for d in cls.all():
             d.configure(nginx_reload=False)
+
         cls.nginx_reload()
 
     @staticmethod
@@ -79,7 +80,8 @@ class Domain(object):
 
     @staticmethod
     def nginx_reload():
-        subprocess.check_call(['sudo', '/usr/sbin/nginx', '-s', 'reload'])
+        if os.path.isfile('/usr/sbin/nginx'):
+            subprocess.check_call(['sudo', '/usr/sbin/nginx', '-s', 'reload'])
 
     @property
     def nginx_config_path(self):
