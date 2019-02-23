@@ -20,7 +20,7 @@ def print_usage_and_exit():
     print("""
 Usage:
     pypaas git-receive-pack <repo_name>
-    pypaas git-pre-receive-hook <repo_name>
+    pypaas git-update-hook <repo_name> <branch> <old-ref> <new-ref>
     pypaas rebuild_authorized_keys
     pypaas rebuild [<repo_name> <branch>]
     pypaas restart [<repo_name> <branch>]
@@ -47,7 +47,7 @@ def git_receive_pack(repo_name, lockfile):
     with flock.Flock(lockfile, flock.LOCK_EX | flock.LOCK_NB):
         repo = Repo(repo_name)
 
-    # Will call pypaas git-pre-receive-hook
+    # Will call pypaas git-update-hook
     # Would always fail if we still have the lock.
     subprocess.check_call(
         [
@@ -59,29 +59,28 @@ def git_receive_pack(repo_name, lockfile):
     )
 
 
-def git_pre_receive_hook(repo_name):
+def git_update_hook(repo_name, refname, oldref, newref):
     repo = Repo(repo_name)
-    for oldref, newref, refname in [l.split() for l in sys.stdin]:
-        if not refname.startswith('refs/heads/'):
-            print_error_and_exit(
-                'Your are pushing something other than a branch.\n' +
-                'Only branches are currently supported targets!\n'
-            )
-        branch = refname[len('refs/heads/'):]
+    if not refname.startswith('refs/heads/'):
+        print_error_and_exit(
+            'Your are pushing something other than a branch.\n' +
+            'Only branches are currently supported targets!\n'
+        )
+    branch = refname[len('refs/heads/'):]
 
-        branches = []
-        for r_branch in repo.branches.values():
-            if r_branch.name == branch:
-                branches.append(r_branch)
+    branches = []
+    for r_branch in repo.branches.values():
+        if r_branch.name == branch:
+            branches.append(r_branch)
 
-        if not branches:
-            print_error_and_exit(
-                'This branch is not configured!'
-            )
+    if not branches:
+        print_error_and_exit(
+            'This branch is not configured!'
+        )
 
-        for b in branches:
-            with logging_section('deploy {0}/{1}'.format(b.repo.name, b.name)):
-                b.deploy(newref)
+    for b in branches:
+        with logging_section('deploy {0}/{1}'.format(b.repo.name, b.name)):
+            b.deploy(newref)
 
 
 def rebuild(repo_name, branch):
@@ -157,8 +156,8 @@ def main():
                 print_usage_and_exit()
 
             # This is a special case: It calls git-shell, which in turn
-            # will call pypaas git-pre-receive-hook. If we take the lock here,
-            # git-pre-receive-hook will always fail.
+            # will call pypaas git-update-hook. If we take the lock here,
+            # git-update-hook will always fail.
             # git_receive_pack takes the lock as long as possible.
             if args[1] == 'git-receive-pack':
                 if len(args) != 3:
@@ -176,10 +175,10 @@ def main():
             # a source of significant complexity and potential for non-obvious
             # and subtile bugs.
             with flock.Flock(f, flock.LOCK_EX | flock.LOCK_NB):
-                if args[1] == 'git-pre-receive-hook':
-                    if len(args) != 3:
+                if args[1] == 'git-update-hook':
+                    if len(args) != 6:
                         print_usage_and_exit()
-                    git_pre_receive_hook(args[2])
+                    git_update_hook(args[2], args[3], args[4], args[5])
 
                 elif args[1] == 'rebuild_authorized_keys':
                     if len(args) != 2:
