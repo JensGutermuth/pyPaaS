@@ -37,7 +37,7 @@ class BaseRunner(object):
     def in_maintenance(self):
         try:
             with open(os.path.expanduser('~/maintenance-state.yml')) as f:
-                state = yaml.load(f)
+                state = yaml.load(f, Loader=yaml.FullLoader)
                 return self.name in state
         except FileNotFoundError:
             return False
@@ -45,7 +45,7 @@ class BaseRunner(object):
     def enable_maintenance(self):
         try:
             with open(os.path.expanduser('~/maintenance-state.yml')) as f:
-                state = yaml.load(f)
+                state = yaml.load(f, Loader=yaml.FullLoader)
         except FileNotFoundError:
             state = dict()
         state[self.name] = {
@@ -59,7 +59,7 @@ class BaseRunner(object):
     def disable_maintenance(self):
         try:
             with open(os.path.expanduser('~/maintenance-state.yml')) as f:
-                state = yaml.load(f)
+                state = yaml.load(f, Loader=yaml.FullLoader)
         except FileNotFoundError:
             state = dict()
         if self.name in state:
