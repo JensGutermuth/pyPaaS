@@ -56,7 +56,7 @@ class Port(object):
     @staticmethod
     def get_state():
         try:
-            state = yaml.load(open(os.path.expanduser('~/ports.yml')))
+            state = yaml.load(open(os.path.expanduser('~/ports.yml')), Loader=yaml.FullLoader)
             return state if state is not None else {}
         except FileNotFoundError:
             return {}
