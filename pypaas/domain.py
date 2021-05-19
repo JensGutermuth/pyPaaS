@@ -10,7 +10,6 @@ from .repo import Repo
 
 
 nginx_ssl_config = """
-{conf}
 server {{
     listen 80 {extra_listen_options};
     listen [::]:80 {extra_listen_options};
@@ -32,7 +31,6 @@ server {{
 """  # nopep8 (silence pep8 warning about long lines)
 
 nginx_config = """
-{conf}
 server {{
     listen 80 {extra_listen_options};
     listen [::]:80 {extra_listen_options};
@@ -64,9 +62,37 @@ class Domain(object):
             yield cls(key)
 
     @classmethod
+    def configure_upstreams(cls):
+        upstreams = {}
+        for d in cls.all():
+            for runner in d.runners.values():
+                if runner.name not in upstreams:
+                    upstreams[runner.name] = runner.nginx_conf
+        for name, config in sorted(upstreams.items()):
+            filename = os.path.join(os.path.expanduser('~/nginx.d/'), 'upstream_' + name + '.conf')
+            util.replace_file(filename, config)
+            if not cls.nginx_configtest():
+                # That file is probably broken => rename it
+                os.rename(filename, filename + '.broken')
+                raise RuntimeError('nginx location config for ' + name + ' failed')
+
+    @classmethod
+    def remove_unused_upstreams(cls):
+        upstream_config_filenames = set()
+        for d in cls.all():
+            for runner in d.runners.values():
+                upstream_config_filenames.add('upstream_' + runner.name + '.conf')
+        for f in os.listdir(os.path.expanduser('~/nginx.d/')):
+            if f.startswith('upstream_') and f.endswith('.conf') and f not in upstream_config_filenames:
+                os.remove(os.path.join(os.path.expanduser('~/nginx.d/'), f))
+
+    @classmethod
     def configure_all(cls):
+        cls.configure_upstreams()
         for d in cls.all():
             d.configure(nginx_reload=False)
+
+        cls.remove_unused_upstreams()
 
         cls.nginx_reload()
 
@@ -121,9 +147,6 @@ class Domain(object):
             domain=self.name,
             extra_listen_options=self.config.get(
                 'extra_listen_options', ''
-            ),
-            conf='\n'.join(
-                runner.nginx_conf for runner in self.runners.values()
             ),
             locations='\n'.join(
                 location.format(
