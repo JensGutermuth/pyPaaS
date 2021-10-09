@@ -19,7 +19,7 @@ class SSHKey(object):
             with open(keyfilename) as keyfile:
                 for key in keyfile:
                     keyparts = key.split()
-                    assert keyparts[0].startswith('ssh-')
+                    assert keyparts[0].startswith('ssh-') or keyparts[0].startswith('ecdsa-')
                     key = ' '.join(keyparts[:2])
                     name = name.replace('.pub', '')
                     lines.append(
