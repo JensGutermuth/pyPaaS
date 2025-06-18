@@ -18,7 +18,7 @@ upstream backend_{name} {{
 """
 
 nginx_location = """
-    proxy_pass http://backend_{name};
+    proxy_pass http://backend_{name}{path};
     proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header Host $http_host;
     {extra_config}
@@ -55,6 +55,7 @@ class NginxBackend(SimpleProcess, NginxBase):
     def nginx_location(self):
         return nginx_location.format(
             name=self.name,
+            path=self.branch.config['runners'][self._name].get('nginx_proxy_path', ''),
             extra_config=self.branch.config['runners'][self._name]
                              .get('nginx_extra_config', '')
         )
