@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+import functools
+import ipaddress
 import os
 import os.path
 import subprocess
@@ -11,15 +13,13 @@ from .repo import Repo
 
 nginx_ssl_config = """
 server {{
-    listen 80 {extra_listen_options};
-    listen [::]:80 {extra_listen_options};
+    {listen_block}
     server_name {domain};
     rewrite ^ https://$http_host$request_uri? permanent;
     {http_extra_config}
 }}
 server {{
-    listen 443 ssl http2 {extra_listen_options};
-    listen [::]:443 ssl http2 {extra_listen_options};
+    {listen_block_ssl}
     server_name {domain};
     {ssl_config}
     ssl_certificate {ssl_certificate};
@@ -46,6 +46,13 @@ location {path} {{
     {extra_config}
 }}
 """
+
+default_listen = """
+    listen {port} {ssl} {extra_listen_options};
+    listen [::]:{port} {ssl} {extra_listen_options};
+"""
+
+custom_listen = "listen {host}:{port} {ssl} {extra_listen_options};"
 
 
 class Domain(object):
@@ -143,10 +150,51 @@ class Domain(object):
             # Remove old broken config
             os.unlink(self.nginx_config_path + '.broken')
 
-        args = dict(
-            domain=self.name,
+        addresses = self.config.get('listen_address', [])
+        if isinstance(addresses, str):
+            addresses = [addresses]
+
+        if addresses:
+            local_ipv4 = False
+            local_ipv6 = False
+            addresses = list(map(ipaddress.ip_address, addresses))
+            for addr in addresses:
+                if addr.is_loopback:
+                    if isinstance(addr, ipaddress.IPv4Address):
+                        local_ipv4 = True
+                    else:
+                        local_ipv6 = True
+
+            if not local_ipv4:
+                addresses.append(ipaddress.IPv4Address('127.0.0.1'))
+            if not local_ipv6:
+                addresses.append(ipaddress.IPv6Address('::1'))
+
             extra_listen_options=self.config.get(
                 'extra_listen_options', ''
+            )
+            def custom_conv():
+                def convert(a):
+                    if isinstance(a, ipaddress.IPv6Address):
+    	                host = '[' + str(a) + ']'
+                    else:
+                        host = str(a)
+                    return functools.partial(custom_listen.format, host=host, extra_listen_options=extra_listen_options)
+                return convert
+    
+            addresses = list(map(custom_conv(), addresses))
+        else:
+            addresses [
+                functools.partial(default_listen.format, extra_listen_options=extra_listen_options)
+            ]
+                
+        args = dict(
+            domain=self.name,
+            listen_block='\n'.join(
+                addr(port=80, ssl='') for addr in addresses
+            ),
+            listen_block_ssl='\n'.join(
+                addr(port=443, ssl='ssl http2') for addr in addresses
             ),
             locations='\n'.join(
                 location.format(
