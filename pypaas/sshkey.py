@@ -4,7 +4,7 @@
 import os.path
 import sys
 
-from . import util
+from . import options, util
 
 
 class SSHKey(object):
@@ -22,13 +22,14 @@ class SSHKey(object):
                     assert keyparts[0].startswith('ssh-') or keyparts[0].startswith('ecdsa-')
                     key = ' '.join(keyparts[:2])
                     name = name.replace('.pub', '')
+                    cmd = os.path.join(os.path.dirname(sys.executable), 'pypaas') + ' $SSH_ORIGINAL_COMMAND'
+                    if options.main.get('shell', None):
+                        cmd = '{} -l -c \'{}\''.format(options.main.get['shell'], cmd)
                     lines.append(
-                        ('command="{pypaas_cmd} $SSH_ORIGINAL_COMMAND",' +
+                        ('command="{cmd} $SSH_ORIGINAL_COMMAND",' +
                          'no-agent-forwarding,no-user-rc,no-X11-forwarding,' +
                          'no-port-forwarding {key} {name}').format(
-                            pypaas_cmd=os.path.join(
-                                os.path.dirname(sys.executable), 'pypaas'
-                            ),
+                            cmd=cmd,
                             key=key,
                             name=name
                         )
