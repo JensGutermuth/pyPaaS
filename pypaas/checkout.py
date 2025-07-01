@@ -58,7 +58,8 @@ class Checkout(object):
         env = dict()
         env.update(os.environ)
         if 'env' in self.branch.config:
-            env.update(self.branch.config['env'])
+            for k, v in self.branch.config['env'].items():
+                env[k] = os.path.expandvars(v)
         env['GIT_COMMIT'] = self.commit
         return env
 
